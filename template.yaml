@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Wei app cloudformation stack
+
+Parameters:
+  StageParameter:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - prod
+      - dev
+    Description: Stage name
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Runtime: python3.11
+    Handler: app.lambda_handler
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        USER_TABLE: !Ref WeiAppUsers
+
+Resources:
+  WeiAppApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: wei_app_api
+      StageName: !Ref StageParameter
+
+#  MainLogGroup:
+#    Type: AWS::Logs::LogGroup
+#    Properties:
+#      LogGroupName: GlobalLogGroup
+#      RetentionInDays: 7
+
+  WeiAppUsers:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: wei_app_db_users
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: mail
+          AttributeType: S
+#        - AttributeName: username
+#          AttributeType: S
+#        - AttributeName: challenges_done
+#          AttributeType: L
+#        - AttributeName: challenges_created
+#          AttributeType: L
+#        - AttributeName: challenges_to_validate
+#          AttributeType: L
+#        - AttributeName: profile_picture_id
+#          AttributeType: S
+      KeySchema:
+        - AttributeName: mail
+          KeyType: HASH
+#        - AttributeName: username
+#          KeyType: RANGE
+
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: wei_app_lambda_hello_world
+      CodeUri: hello_world/
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+            RestApiId: !Ref WeiAppApi

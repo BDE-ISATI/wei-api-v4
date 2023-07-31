@@ -1,0 +1,10 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "WeiAppDev"
+resolve_s3 = true
+s3_prefix = "WeiAppDev"
+region = "eu-west-1"
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+image_repositories = []
+confirm_changeset = true
+parameter_overrides = "StageParameter=\"dev\""
