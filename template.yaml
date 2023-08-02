@@ -22,6 +22,7 @@ Globals:
     Environment:
       Variables:
         USER_TABLE: !Ref WeiAppUsers
+        CHALLENGES_TABLE: !Ref WeiAppChallenges
 
 Resources:
   WeiAppApi:
@@ -36,16 +37,46 @@ Resources:
 #      LogGroupName: GlobalLogGroup
 #      RetentionInDays: 7
 
+  WeiAppUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: wei_app_user_pool
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: False
+          RequireNumbers: False
+          RequireSymbols: False
+          RequireUppercase: False
+#      Schema:
+#        - AttributeDataType: String
+#          Name: email
+#          Required: True
+#        - AttributeDataType: String
+#          Name: username
+#          Required: True
+
+  WeiAppUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: wei_app_user_pool_client
+      GenerateSecret: True
+      UserPoolId: !Ref WeiAppUserPool
+
   WeiAppUsers:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: wei_app_db_users
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: mail
-          AttributeType: S
-#        - AttributeName: username
+#        - AttributeName: mail
 #          AttributeType: S
+        - AttributeName: username
+          AttributeType: S
 #        - AttributeName: challenges_done
 #          AttributeType: L
 #        - AttributeName: challenges_created
@@ -55,20 +86,98 @@ Resources:
 #        - AttributeName: profile_picture_id
 #          AttributeType: S
       KeySchema:
-        - AttributeName: mail
+#        - AttributeName: mail
+#          KeyType: HASH
+        - AttributeName: username
           KeyType: HASH
-#        - AttributeName: username
-#          KeyType: RANGE
+
+  WeiAppChallenges:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: wei_app_db_challenges
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: challenge_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: challenge_id
+          KeyType: HASH
+
+  AllowAllRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+               - lambda.amazonaws.com
+               - apigateway.amazonaws.com
+               - dynamodb.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: AllowAllPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
 
   HelloWorldFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       FunctionName: wei_app_lambda_hello_world
       CodeUri: hello_world/
+      Role: !GetAtt AllowAllRole.Arn
       Events:
         ApiEvent:
           Type: Api
           Properties:
             Path: /
             Method: get
+            RestApiId: !Ref WeiAppApi
+
+  GetAllUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_get_all_users
+      CodeUri: get_all_users/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: get
+            RestApiId: !Ref WeiAppApi
+
+  GetUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_get_user
+      CodeUri: get_user/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/{username}
+            Method: get
+            RestApiId: !Ref WeiAppApi
+
+  CreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_create_user
+      CodeUri: create_user/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/{username}
+            Method: put
             RestApiId: !Ref WeiAppApi
