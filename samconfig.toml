@@ -7,4 +7,4 @@ region = "eu-west-1"
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
 image_repositories = []
 confirm_changeset = true
-parameter_overrides = "StageParameter=\"dev\""
+parameter_overrides = "StageParameter=\"dev\" SESMailAddressArn=\"arn:aws:ses:eu-west-1:704678314289:identity/wei.admin@isati.org\""

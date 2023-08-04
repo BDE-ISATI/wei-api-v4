@@ -30,21 +30,26 @@ Resources:
     Properties:
       Name: wei_app_api
       StageName: !Ref StageParameter
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt WeiAppUserPool.Arn
 
-#  MainLogGroup:
-#    Type: AWS::Logs::LogGroup
-#    Properties:
-#      LogGroupName: GlobalLogGroup
-#      RetentionInDays: 7
+  #
+  # COGNITO
+  #
 
   WeiAppUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: wei_app_user_pool
-      UsernameAttributes:
+      AliasAttributes:
         - email
+        - preferred_username
       AutoVerifiedAttributes:
         - email
+      UsernameConfiguration:
+        CaseSensitive: True
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -52,20 +57,69 @@ Resources:
           RequireNumbers: False
           RequireSymbols: False
           RequireUppercase: False
-#      Schema:
-#        - AttributeDataType: String
-#          Name: email
+      Schema:
+        - Name: email
+          Required: True
+          Mutable: False
+#        - Name: preferred_username
 #          Required: True
-#        - AttributeDataType: String
-#          Name: username
-#          Required: True
+#          Mutable: False
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_LINK
+      EmailVerificationSubject: "WEI - Vérification de votre adresse email"
+      EmailVerificationMessage: "Lien de vérification : {####}"
+      LambdaConfig:
+        PostConfirmation: !GetAtt PostConfirmSignUpFunction.Arn
+
+  OnCognitoPostConfirmationSignUpPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt PostConfirmSignUpFunction.Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${WeiAppUserPool}
+
+  WeiAppUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId: !Ref WeiAppUserPool
+      Domain: !Sub ${StageParameter}-wei-app-upd
 
   WeiAppUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       ClientName: wei_app_user_pool_client
-      GenerateSecret: True
+      GenerateSecret: False
       UserPoolId: !Ref WeiAppUserPool
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_CUSTOM_AUTH
+
+#  WeiAppUserPoolAdminGroup:
+#    Type: AWS::Cognito::UserPoolGroup
+#    Properties:
+#      Description: Admin group
+#      GroupName: Admin
+#      UserPoolId: !Ref WeiAppUserPool
+#
+#  WeiAppUserPoolManagerGroup:
+#    Type: AWS::Cognito::UserPoolGroup
+#    Properties:
+#      Description: Manager group
+#      GroupName: Manager
+#      UserPoolId: !Ref WeiAppUserPool
+#
+#  WeiAppUserPoolPlayerGroup:
+#    Type: AWS::Cognito::UserPoolGroup
+#    Properties:
+#      Description: Player group
+#      GroupName: Player
+#      UserPoolId: !Ref WeiAppUserPool
+
+  #
+  # DB
+  #
 
   WeiAppUsers:
     Type: AWS::DynamoDB::Table
@@ -73,21 +127,9 @@ Resources:
       TableName: wei_app_db_users
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-#        - AttributeName: mail
-#          AttributeType: S
         - AttributeName: username
           AttributeType: S
-#        - AttributeName: challenges_done
-#          AttributeType: L
-#        - AttributeName: challenges_created
-#          AttributeType: L
-#        - AttributeName: challenges_to_validate
-#          AttributeType: L
-#        - AttributeName: profile_picture_id
-#          AttributeType: S
       KeySchema:
-#        - AttributeName: mail
-#          KeyType: HASH
         - AttributeName: username
           KeyType: HASH
 
@@ -102,6 +144,10 @@ Resources:
       KeySchema:
         - AttributeName: challenge_id
           KeyType: HASH
+
+  #
+  # STUFF
+  #
 
   AllowAllRole:
     Type: 'AWS::IAM::Role'
@@ -126,8 +172,12 @@ Resources:
                 Action: '*'
                 Resource: '*'
 
+  #
+  # FUNCTIONS
+  #
+
   HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: wei_app_lambda_hello_world
       CodeUri: hello_world/
@@ -168,16 +218,66 @@ Resources:
             Method: get
             RestApiId: !Ref WeiAppApi
 
-  CreateUserFunction:
+  GetSelfFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: wei_app_lambda_create_user
-      CodeUri: create_user/
+      FunctionName: wei_app_lambda_get_self
+      CodeUri: get_self/
       Role: !GetAtt AllowAllRole.Arn
       Events:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /users/{username}
-            Method: put
+            Path: /users/me
+            Method: get
             RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  GetAllChallengesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_get_all_challenges
+      CodeUri: get_all_challenges/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /challenges
+            Method: get
+            RestApiId: !Ref WeiAppApi
+
+  GetChallengeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_get_challenge
+      CodeUri: get_challenge/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /challenges/{challenge_id}
+            Method: get
+            RestApiId: !Ref WeiAppApi
+
+  PostConfirmSignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_post_confirm_sign_up
+      CodeUri: post_confirm_sign_up/
+      Role: !GetAtt AllowAllRole.Arn
+
+  ToolsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: ToolsLayer
+      Description: Layer with helper functions
+      ContentUri: tools_layer/
+      CompatibleRuntimes:
+        - python3.11
+Outputs:
+  UserPoolClientID:
+    Value: !Ref WeiAppUserPoolClient
+    Description: User Pool Client ID
