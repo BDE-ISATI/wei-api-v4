@@ -23,6 +23,7 @@ Globals:
       Variables:
         USER_TABLE: !Ref WeiAppUsers
         CHALLENGES_TABLE: !Ref WeiAppChallenges
+        TEAMS_TABLE: !Ref WeiAppTeams
 
 Resources:
   WeiAppApi:
@@ -133,6 +134,18 @@ Resources:
         - AttributeName: username
           KeyType: HASH
 
+  WeiAppTeams:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: wei_app_db_teams
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: team
+          AttributeType: S
+      KeySchema:
+        - AttributeName: team
+          KeyType: HASH
+
   WeiAppChallenges:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -224,6 +237,8 @@ Resources:
       FunctionName: wei_app_lambda_get_self
       CodeUri: get_self/
       Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
       Events:
         ApiEvent:
           Type: Api
@@ -262,6 +277,70 @@ Resources:
             Method: get
             RestApiId: !Ref WeiAppApi
 
+  CreateTeamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_create_team
+      CodeUri: create_team/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /teams/{team}
+            Method: put
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  UpdateTeamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_update_team
+      CodeUri: update_team/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /teams/{team}
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  GetTeamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_get_team
+      CodeUri: get_team/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /teams/{team}
+            Method: get
+            RestApiId: !Ref WeiAppApi
+
+  GetAllTeamsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_get_all_teams
+      CodeUri: get_all_teams/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /teams
+            Method: get
+            RestApiId: !Ref WeiAppApi
+
   PostConfirmSignUpFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -269,12 +348,11 @@ Resources:
       CodeUri: post_confirm_sign_up/
       Role: !GetAtt AllowAllRole.Arn
 
-  ToolsLayer:
+  DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
-      LayerName: ToolsLayer
-      Description: Layer with helper functions
-      ContentUri: tools_layer/
+      LayerName: DependenciesLayer
+      ContentUri: dependencies/
       CompatibleRuntimes:
         - python3.11
 Outputs:

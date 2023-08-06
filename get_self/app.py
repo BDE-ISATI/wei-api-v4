@@ -1,15 +1,12 @@
 import json
 import boto3
 import os
-import tools_layer
+import jwt
+import time
 
 def lambda_handler(event, context):
     try:
-        token = tools_layer.Token(event['headers']['Authorization'].replace('Bearer ', ''))
-        token.decode()
-
-        if not token.is_valid():
-            raise Exception('Invalid token.')
+        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'], options={"verify_signature": False})
 
         dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table(os.environ['USER_TABLE'])
@@ -17,7 +14,7 @@ def lambda_handler(event, context):
         # Get user from event.pathParameters.username
         response = table.get_item(
             Key={
-                'username': token.decoded['username']
+                'username': token['cognito:username']
             }
         )
 
@@ -34,7 +31,7 @@ def lambda_handler(event, context):
         }
     except Exception as error:
         return {
-            "statusCode": 404,
+            "statusCode": 500,
             "body": json.dumps({"error": str(error)})
         }
 

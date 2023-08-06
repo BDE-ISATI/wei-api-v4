@@ -4,12 +4,12 @@ import os
 
 def lambda_handler(event, context):
     dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table(os.environ['USER_TABLE'])
+    table = dynamodb.Table(os.environ['TEAMS_TABLE'])
 
     # Get user from event.pathParameters.username
     response = table.get_item(
         Key={
-            'username': event['pathParameters']['username']
+            'team': event['pathParameters']['team']
         }
     )
 
@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     if 'Item' not in response:
         return {
             "statusCode": 404,
-            "body": json.dumps({"error": "User not found"})
+            "body": json.dumps({"error": "Team not found"})
         }
 
     return {
