@@ -6,16 +6,14 @@ def lambda_handler(event, context):
         token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
-        dynamodb = boto3.resource('dynamodb')
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
-        team_name = event['pathParameters']['team']
+        if 'body' not in event:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"message": 'Missing body'})
+            }
+        body = json.loads(event['body'])
 
-        # team = teams_table.get_item(Key={'team': event['pathParameters']['team']}).get('Item')
-        # if not team:
-        #     return {
-        #         'statusCode': 400,
-        #         'body': json.dumps('Team does not exist')
-        #     }
+        dynamodb = boto3.resource('dynamodb')
 
         user_table = dynamodb.Table(os.environ['USER_TABLE'])
         user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
@@ -23,18 +21,17 @@ def lambda_handler(event, context):
         if user['role'] != 'admin' and user['role'] != 'leader':
             return {
                 'statusCode': 401,
-                'body': json.dumps('Unauthorized')
+                'body': json.dumps({"message": 'Unauthorized'})
             }
 
-        if event['body'] is not None:
-            body = json.loads(event['body'])
-            display_name = body['display_name'] if 'display_name' in body else ''
-            picture_id = body['picture_id'] if 'picture_id' in body else ''
-        else:
-            display_name = ''
-            picture_id = ''
+        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
+        team_name = event['pathParameters']['team']
+
+        display_name = body['display_name'] if 'display_name' in body else ''
+        picture_id = body['picture_id'] if 'picture_id' in body else ''
 
         success = True
+        status = {}
         if display_name != '':
             response = teams_table.update_item(
                 Key={
@@ -47,6 +44,10 @@ def lambda_handler(event, context):
                 ReturnValues="UPDATED_NEW"
             )
             success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
+            if not success:
+                status['display_name'] = 'Failed to update display name'
+            else:
+                status['display_name'] = 'Display name updated successfully'
 
 
         if picture_id != '':
@@ -61,20 +62,24 @@ def lambda_handler(event, context):
                 ReturnValues="UPDATED_NEW"
             )
             success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
+            if not success:
+                status['picture_id'] = 'Failed to update picture id'
+            else:
+                status['picture_id'] = 'Picture id updated successfully'
 
 
         if not success:
             return {
                 'statusCode': 500,
-                'body': json.dumps('Error updating team')
+                'body': json.dumps({"message": 'Error updating team', "status": status})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps('Team updated successfully')
+            'body': json.dumps({"message": 'Team updated successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(error)})
+            "body": json.dumps({"message": str(error)})
         }

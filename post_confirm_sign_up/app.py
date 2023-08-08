@@ -16,7 +16,6 @@ def lambda_handler(event, context):
                 'challenges_done': [],
                 'challenges_pending': [],
                 'challenges_to_do': [],
-                'challenges_created': [],
                 'profile_picture_id': '',
                 'role': 'player'
             }

@@ -6,11 +6,14 @@ def lambda_handler(event, context):
         token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
+        if 'body' not in event:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"message": 'Missing body'})
+            }
         body = json.loads(event['body'])
 
         dynamodb = boto3.resource('dynamodb')
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
-        team_name = event['pathParameters']['team']
 
         user_table = dynamodb.Table(os.environ['USER_TABLE'])
         user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
@@ -20,6 +23,9 @@ def lambda_handler(event, context):
                 'statusCode': 401,
                 'body': json.dumps({"message": 'Unauthorized'})
             }
+
+        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
+        team_name = event['pathParameters']['team']
 
         # Get the team and check if user is in pending
         response = teams_table.get_item(

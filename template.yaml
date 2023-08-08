@@ -35,6 +35,57 @@ Resources:
         Authorizers:
           CognitoAuthorizer:
             UserPoolArn: !GetAtt WeiAppUserPool.Arn
+      Models:
+        CreateChallengeModel:
+          type: object
+          required: [name, description, points, start, end]
+          properties:
+            challenge:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            points:
+                type: integer
+            start:
+              type: integer
+            end:
+              type: integer
+            max_count:
+              type: integer
+        UpdateChallengeModel:
+          type: object
+          properties:
+            challenge:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            points:
+              type: integer
+            start:
+              type: integer
+            end:
+              type: integer
+            max_count:
+              type: integer
+        CreateTeamModel:
+          type: object
+          required: [display_name, picture_id]
+          properties:
+            display_name:
+              type: string
+            picture_id:
+              type: string
+        UpdateTeamModel:
+          type: object
+          properties:
+            display_name:
+              type: string
+            picture_id:
+              type: string
 
   #
   # COGNITO
@@ -152,10 +203,10 @@ Resources:
       TableName: wei_app_db_challenges
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: challenge_id
+        - AttributeName: challenge
           AttributeType: S
       KeySchema:
-        - AttributeName: challenge_id
+        - AttributeName: challenge
           KeyType: HASH
 
   #
@@ -249,19 +300,66 @@ Resources:
             Auth:
               Authorizer: CognitoAuthorizer
 
-  GetAllChallengesFunction:
+
+  CreateChallengeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: wei_app_lambda_get_all_challenges
-      CodeUri: get_all_challenges/
+      FunctionName: wei_app_lambda_create_challenge
+      CodeUri: create_challenge/
       Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
       Events:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /challenges
-            Method: get
+            Path: /challenges/{challenge}
+            Method: put
             RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: CreateChallengeModel
+              ValidateBody: true
+
+  UpdateChallengeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_update_challenge
+      CodeUri: update_challenge/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /challenges/{challenge}
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: UpdateChallengeModel
+              ValidateBody: true
+
+  RequestChallengeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_request_challenge
+      CodeUri: request_challenge/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /challenges/{challenge}/request
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
 
   GetChallengeFunction:
     Type: AWS::Serverless::Function
@@ -273,7 +371,21 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /challenges/{challenge_id}
+            Path: /challenges/{challenge}
+            Method: get
+            RestApiId: !Ref WeiAppApi
+
+  GetAllChallengesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_get_all_challenges
+      CodeUri: get_all_challenges/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /challenges
             Method: get
             RestApiId: !Ref WeiAppApi
 
@@ -294,6 +406,9 @@ Resources:
             RestApiId: !Ref WeiAppApi
             Auth:
               Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: CreateTeamModel
+              ValidateBody: true
 
   UpdateTeamFunction:
     Type: AWS::Serverless::Function
@@ -312,6 +427,9 @@ Resources:
             RestApiId: !Ref WeiAppApi
             Auth:
               Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: UpdateTeamModel
+              ValidateBody: true
 
   JoinTeamFunction:
     Type: AWS::Serverless::Function

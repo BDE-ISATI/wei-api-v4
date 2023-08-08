@@ -6,15 +6,14 @@ def lambda_handler(event, context):
         token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
-        dynamodb = boto3.resource('dynamodb')
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
-        team_name = event['pathParameters']['team']
-
-        if teams_table.get_item(Key={'team': team_name}).get('Item'):
+        if 'body' not in event:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'Team already exists'})
+                'body': json.dumps({"message": 'Missing body'})
             }
+        body = json.loads(event['body'])
+
+        dynamodb = boto3.resource('dynamodb')
 
         user_table = dynamodb.Table(os.environ['USER_TABLE'])
         user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
@@ -25,13 +24,18 @@ def lambda_handler(event, context):
                 'body': json.dumps({"message": 'Unauthorized'})
             }
 
-        if event['body'] is not None:
-            body = json.loads(event['body'])
-            display_name = body['display_name'] if 'display_name' in body else ''
-            picture_id = body['picture_id'] if 'picture_id' in body else ''
-        else:
-            display_name = ''
-            picture_id = ''
+
+        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
+        team_name = event['pathParameters']['team']
+
+        if teams_table.get_item(Key={'team': team_name}).get('Item'):
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"message": 'Team already exists'})
+            }
+
+        display_name = body['display_name']
+        picture_id = body['picture_id']
 
         response = teams_table.put_item(Item={
             'team': team_name,

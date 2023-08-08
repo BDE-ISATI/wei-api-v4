@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     # Get user from event.pathParameters.username
     response = table.get_item(
         Key={
-            'challenge_id': event['pathParameters']['challenge_id']
+            'challenge': event['pathParameters']['challenge']
         }
     )
 
@@ -24,6 +24,6 @@ def lambda_handler(event, context):
 
     return {
         "statusCode": 200,
-        "body": json.dumps(response['Item'])
+        "body": json.dumps(response['Item'], default=int)
     }
 

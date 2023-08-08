@@ -7,8 +7,6 @@ def lambda_handler(event, context):
                            options={"verify_signature": False})
 
         dynamodb = boto3.resource('dynamodb')
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
-        team_name = event['pathParameters']['team']
 
         user_table = dynamodb.Table(os.environ['USER_TABLE'])
         user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
@@ -19,7 +17,9 @@ def lambda_handler(event, context):
                 'body': json.dumps({"message": 'You must be a player to join a team!'})
             }
 
-        # Check if player is already in any team, pending or member
+        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
+        team_name = event['pathParameters']['team']
+
         response = teams_table.scan(
             FilterExpression='contains(members, :player) OR contains(pending, :player)',
             ExpressionAttributeValues={

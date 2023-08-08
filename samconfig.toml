@@ -6,5 +6,5 @@ s3_prefix = "WeiAppDev"
 region = "eu-west-1"
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
 image_repositories = []
-confirm_changeset = true
+confirm_changeset = false
 parameter_overrides = "StageParameter=\"dev\" SESMailAddressArn=\"arn:aws:ses:eu-west-1:704678314289:identity/wei.admin@isati.org\""
