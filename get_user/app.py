@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     if 'Item' not in response:
         return {
             "statusCode": 404,
-            "body": json.dumps({"error": "User not found"})
+            "body": json.dumps({"message": "User not found"})
         }
 
     return {

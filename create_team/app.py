@@ -13,7 +13,7 @@ def lambda_handler(event, context):
         if teams_table.get_item(Key={'team': team_name}).get('Item'):
             return {
                 'statusCode': 400,
-                'body': json.dumps('Team already exists')
+                'body': json.dumps({"message": 'Team already exists'})
             }
 
         user_table = dynamodb.Table(os.environ['USER_TABLE'])
@@ -22,7 +22,7 @@ def lambda_handler(event, context):
         if user['role'] != 'admin' and user['role'] != 'leader':
             return {
                 'statusCode': 401,
-                'body': json.dumps('Unauthorized')
+                'body': json.dumps({"message": 'Unauthorized'})
             }
 
         if event['body'] is not None:
@@ -37,21 +37,22 @@ def lambda_handler(event, context):
             'team': team_name,
             'display_name': display_name,
             'picture_id': picture_id,
-            'members': [token['cognito:username']],
+            'members': [],
+            'pending': []
         })
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps('Error creating team')
+                'body': json.dumps({"message": 'Error creating team'})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps('Team created successfully')
+            'body': json.dumps({"message": 'Team created successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": str(error)})
+            "body": json.dumps({"message": str(error)})
         }

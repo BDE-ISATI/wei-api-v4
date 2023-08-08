@@ -1,6 +1,4 @@
-import json
-import boto3
-import os
+import json, boto3, os
 # import requests
 
 

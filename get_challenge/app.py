@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     if 'Item' not in response:
         return {
             "statusCode": 404,
-            "body": json.dumps({"error": "Challenge not found"})
+            "body": json.dumps({"message": "Challenge not found"})
         }
 
     return {

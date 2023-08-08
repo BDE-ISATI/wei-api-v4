@@ -10,17 +10,17 @@ def lambda_handler(event, context):
         teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
         team_name = event['pathParameters']['team']
 
-        team = teams_table.get_item(Key={'team': event['pathParameters']['team']}).get('Item')
-        if not team:
-            return {
-                'statusCode': 400,
-                'body': json.dumps('Team does not exist')
-            }
+        # team = teams_table.get_item(Key={'team': event['pathParameters']['team']}).get('Item')
+        # if not team:
+        #     return {
+        #         'statusCode': 400,
+        #         'body': json.dumps('Team does not exist')
+        #     }
 
         user_table = dynamodb.Table(os.environ['USER_TABLE'])
         user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
 
-        if user['role'] != 'admin' and (user['role'] != 'leader' or token['cognito:username'] not in team['members']):
+        if user['role'] != 'admin' and user['role'] != 'leader':
             return {
                 'statusCode': 401,
                 'body': json.dumps('Unauthorized')
@@ -34,19 +34,36 @@ def lambda_handler(event, context):
             display_name = ''
             picture_id = ''
 
-        response = teams_table.update_item(
-            Key={
-                'team': team_name
-            },
-            UpdateExpression="set display_name=:d, picture_id=:p",
-            ExpressionAttributeValues={
-                ':d': display_name,
-                ':p': picture_id
-            },
-            ReturnValues="UPDATED_NEW"
-        )
+        success = True
+        if display_name != '':
+            response = teams_table.update_item(
+                Key={
+                    'team': team_name
+                },
+                UpdateExpression="set display_name=:d",
+                ExpressionAttributeValues={
+                    ':d': display_name
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
 
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+
+        if picture_id != '':
+            response = teams_table.update_item(
+                Key={
+                    'team': team_name
+                },
+                UpdateExpression="set picture_id=:p",
+                ExpressionAttributeValues={
+                    ':p': picture_id
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
+
+
+        if not success:
             return {
                 'statusCode': 500,
                 'body': json.dumps('Error updating team')

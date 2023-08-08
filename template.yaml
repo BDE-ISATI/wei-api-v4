@@ -313,6 +313,42 @@ Resources:
             Auth:
               Authorizer: CognitoAuthorizer
 
+  JoinTeamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_join_team
+      CodeUri: join_team/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /teams/{team}/join
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
+  AcceptJoinTeamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_accept_join_team
+      CodeUri: accept_join_team/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /teams/{team}/accept
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
   GetTeamFunction:
     Type: AWS::Serverless::Function
     Properties:
