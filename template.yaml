@@ -256,7 +256,7 @@ Resources:
   WeiAppPictureStorage:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: wei_app_picture_storage
+      BucketName: wei-app-picture-storage
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins:
