@@ -1,9 +1,11 @@
-import json, os, boto3, jwt
+import json, os, boto3
+from time import time
+from jwt import decode
 
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         dynamodb = boto3.resource('dynamodb')
@@ -31,6 +33,14 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'body': json.dumps({"message": 'You have already completed this challenge the maximum number of times'})
+            }
+
+        t = int(time())
+        print(f'Time : {t}')
+        if challenge['start'] > t or challenge['end'] < t:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"message": 'Challenge not active'})
             }
 
         # Add the challenge to the user's pending challenges

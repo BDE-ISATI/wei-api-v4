@@ -1,9 +1,9 @@
-import boto3, json, os, jwt, time
-
+import boto3, json, os, time
+from jwt import decode
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         if 'body' not in event:
@@ -48,20 +48,6 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'body': json.dumps({"message": 'Player didn\'t request this challenge'})
-            }
-
-        # Get challenge
-        challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
-        challenge = challenge_table.get_item(
-            Key={
-                'challenge': body['challenge']
-            }
-        )['Item']
-
-        if challenge['start'] > int(time.time()) or challenge['end'] < int(time.time()):
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"message": 'Challenge not active'})
             }
 
         index = response['Item']['challenges_pending'].index(body['challenge'])

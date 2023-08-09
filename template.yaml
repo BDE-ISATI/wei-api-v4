@@ -24,6 +24,7 @@ Globals:
         USER_TABLE: !Ref WeiAppUsers
         CHALLENGES_TABLE: !Ref WeiAppChallenges
         TEAMS_TABLE: !Ref WeiAppTeams
+        PICTURE_BUCKET: !Ref WeiAppPictureStorage
 
 Resources:
   WeiAppApi:
