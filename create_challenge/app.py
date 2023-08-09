@@ -6,23 +6,15 @@ def lambda_handler(event, context):
         token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
-        if 'body' not in event:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"message": 'Missing body'})
-            }
-        body = json.loads(event['body'])
-
-        dynamodb = boto3.resource('dynamodb')
-
-        user_table = dynamodb.Table(os.environ['USER_TABLE'])
-        user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
-
-        if user['role'] != 'admin' and user['role'] != 'leader':
+        if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
                 'body': json.dumps({"message": 'Unauthorized'})
             }
+
+        body = json.loads(event['body'])
+
+        dynamodb = boto3.resource('dynamodb')
 
         name = body['name']
         description = body['description']
@@ -45,12 +37,6 @@ def lambda_handler(event, context):
         challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
         challenge_id = event['pathParameters']['challenge']
 
-        if challenge_table.get_item(Key={'challenge': challenge_id}).get('Item'):
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"message": 'Challenge already exists'})
-            }
-
         response = challenge_table.put_item(
             Item={
                 'challenge': challenge_id,
@@ -61,7 +47,8 @@ def lambda_handler(event, context):
                 'start': start,
                 'end': end,
                 'max_count': max_count
-            }
+            },
+            ConditionExpression='attribute_not_exists(challenge)'
         )
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:

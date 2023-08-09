@@ -6,23 +6,21 @@ def lambda_handler(event, context):
         token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
-        if 'body' not in event:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"message": 'Missing body'})
-            }
-        body = json.loads(event['body'])
-
-        dynamodb = boto3.resource('dynamodb')
-
-        user_table = dynamodb.Table(os.environ['USER_TABLE'])
-        user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
-
-        if user['role'] != 'admin' and user['role'] != 'leader':
+        if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
                 'body': json.dumps({"message": 'Unauthorized'})
             }
+
+        body = json.loads(event['body'])
+
+        if len(body) == 0:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"message": 'Missing body'})
+            }
+
+        dynamodb = boto3.resource('dynamodb')
 
         teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
         team_name = event['pathParameters']['team']
@@ -30,48 +28,33 @@ def lambda_handler(event, context):
         display_name = body['display_name'] if 'display_name' in body else ''
         picture_id = body['picture_id'] if 'picture_id' in body else ''
 
-        success = True
-        status = {}
+        update_values = {}
+        update_expression = "set "
         if display_name != '':
-            response = teams_table.update_item(
-                Key={
-                    'team': team_name
-                },
-                UpdateExpression="set display_name=:d",
-                ExpressionAttributeValues={
-                    ':d': display_name
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['display_name'] = 'Failed to update display name'
-            else:
-                status['display_name'] = 'Display name updated successfully'
-
+            update_expression += "display_name=:d"
+            update_values[':d'] = display_name
 
         if picture_id != '':
-            response = teams_table.update_item(
-                Key={
-                    'team': team_name
-                },
-                UpdateExpression="set picture_id=:p",
-                ExpressionAttributeValues={
-                    ':p': picture_id
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['picture_id'] = 'Failed to update picture id'
-            else:
-                status['picture_id'] = 'Picture id updated successfully'
+            if len(update_values) > 0:
+                update_expression += ", "
+            update_expression += "picture_id=:p"
+            update_values[':p'] = picture_id
 
+        update_values[':t'] = team_name
+        response = teams_table.update_item(
+            Key={
+                'team': team_name
+            },
+            UpdateExpression=update_expression,
+            ConditionExpression="team=:t",
+            ExpressionAttributeValues=update_values,
+            ReturnValues="UPDATED_NEW"
+        )
 
-        if not success:
+        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error updating team', "status": status})
+                'body': json.dumps({"message": 'Error updating team'})
             }
 
         return {

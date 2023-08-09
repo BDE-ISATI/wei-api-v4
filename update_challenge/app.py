@@ -6,33 +6,24 @@ def lambda_handler(event, context):
         token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
-        if 'body' not in event:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"message": 'Missing body'})
-            }
-        body = json.loads(event['body'])
-
-        dynamodb = boto3.resource('dynamodb')
-
-        user_table = dynamodb.Table(os.environ['USER_TABLE'])
-        user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
-
-        if user['role'] != 'admin' and user['role'] != 'leader':
+        if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
                 'body': json.dumps({"message": 'Unauthorized'})
             }
 
+        body = json.loads(event['body'])
+
+        if len(body) == 0:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"message": 'Missing parameters'})
+            }
+
+        dynamodb = boto3.resource('dynamodb')
+
         challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
         challenge_id = event['pathParameters']['challenge']
-
-        response = challenge_table.get_item(Key={'challenge': challenge_id})
-        if 'Item' not in response:
-            return {
-                'statusCode': 404,
-                'body': json.dumps({"message": 'Challenge not found'})
-            }
 
         name = body['name'] if 'name' in body else ''
         description = body['description'] if 'description' in body else ''
@@ -98,11 +89,13 @@ def lambda_handler(event, context):
             update_expression += "max_count=:m"
             values[':m'] = max_count
 
+        values[':c'] = challenge_id
         response = challenge_table.update_item(
             Key={
                 'challenge': challenge_id
             },
-            UpdateExpression=update_expression,  # Name is a reserved word in DynamoDB
+            UpdateExpression=update_expression,
+            ConditionExpression="challenge = :c",
             ExpressionAttributeNames=names,
             ExpressionAttributeValues=values,
             ReturnValues="UPDATED_NEW"

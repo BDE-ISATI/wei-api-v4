@@ -6,23 +6,15 @@ def lambda_handler(event, context):
         token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
-        if 'body' not in event:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({"message": 'Missing body'})
-            }
-        body = json.loads(event['body'])
-
-        dynamodb = boto3.resource('dynamodb')
-
-        user_table = dynamodb.Table(os.environ['USER_TABLE'])
-        user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
-
-        if user['role'] != 'leader' and user['role'] != 'admin':
+        if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
                 'body': json.dumps({"message": 'Unauthorized'})
             }
+
+        body = json.loads(event['body'])
+
+        dynamodb = boto3.resource('dynamodb')
 
         teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
         team_name = event['pathParameters']['team']

@@ -1,20 +1,19 @@
-import boto3, json, os, jwt
+import boto3, os
+from jwt import decode
+from json import dumps as json_dumps
 
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         dynamodb = boto3.resource('dynamodb')
 
-        user_table = dynamodb.Table(os.environ['USER_TABLE'])
-        user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
-
-        if user['role'] != 'player':
+        if 'cognito:groups' in token and 'Admin' in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json.dumps({"message": 'You must be a player to join a team!'})
+                'body': json_dumps({"message": 'You must be a player to join a team'})
             }
 
         teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
@@ -23,20 +22,20 @@ def lambda_handler(event, context):
         response = teams_table.scan(
             FilterExpression='contains(members, :player) OR contains(pending, :player)',
             ExpressionAttributeValues={
-                ':player': user['username']
+                ':player': token['cognito:username']
             }
         )
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error joining team'})
+                'body': json_dumps({"message": 'Error joining team'})
             }
 
         if len(response['Items']) > 0:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'You are already in a team.'})
+                'body': json_dumps({"message": 'You are already in a team.'})
             }
 
         response = teams_table.update_item(
@@ -44,8 +43,10 @@ def lambda_handler(event, context):
                 'team': team_name
             },
             UpdateExpression='SET pending = list_append(pending, :player)',
+            ConditionExpression=('team = :team'),
             ExpressionAttributeValues={
-                ':player': [user['username']]
+                ':player': [token['cognito:username']],
+                ':team': team_name
             },
             ReturnValues="UPDATED_NEW"
         )
@@ -53,15 +54,15 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error joining team'})
+                'body': json_dumps({"message": 'Error joining team'})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Team joined successfully'})
+            'body': json_dumps({"message": 'Team joined successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error)})
         }

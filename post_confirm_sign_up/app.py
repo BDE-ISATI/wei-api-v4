@@ -17,7 +17,7 @@ def lambda_handler(event, context):
                 'challenges_pending': [],
                 'challenges_to_do': [],
                 'profile_picture_id': '',
-                'role': 'player'
+                'show': True,
             }
         )
 

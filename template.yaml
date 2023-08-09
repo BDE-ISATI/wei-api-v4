@@ -140,6 +140,13 @@ Resources:
       LambdaConfig:
         PostConfirmation: !GetAtt PostConfirmSignUpFunction.Arn
 
+  WeiAppUserPoolAdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      Description: Admin group
+      GroupName: Admin
+      UserPoolId: !Ref WeiAppUserPool
+
   OnCognitoPostConfirmationSignUpPermission:
     Type: AWS::Lambda::Permission
     Properties:
