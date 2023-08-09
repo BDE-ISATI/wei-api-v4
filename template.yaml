@@ -549,3 +549,6 @@ Outputs:
   UserPoolClientID:
     Value: !Ref WeiAppUserPoolClient
     Description: User Pool Client ID
+  ApiUrl:
+    Value:  !Sub https://${WeiAppApi}.execute-api.${AWS::Region}.amazonaws.com
+    Description: API Endpoint URL
