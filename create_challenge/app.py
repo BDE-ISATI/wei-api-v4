@@ -26,6 +26,7 @@ def lambda_handler(event, context):
 
         name = body['name']
         description = body['description']
+        picture_id = body['picture_id'] if 'picture_id' in body else ''
         points = body['points']
         if points < 0:
             return {
@@ -55,6 +56,7 @@ def lambda_handler(event, context):
                 'challenge': challenge_id,
                 'name': name,
                 'description': description,
+                'picture_id': picture_id,
                 'points': points,
                 'start': start,
                 'end': end,

@@ -36,14 +36,17 @@ def lambda_handler(event, context):
 
         name = body['name'] if 'name' in body else ''
         description = body['description'] if 'description' in body else ''
+        picture_id = body['picture_id'] if 'picture_id' in body else ''
         points = body['points'] if 'points' in body else 0
         if points < 0:
             return {
                 'statusCode': 400,
                 'body': json.dumps({"message": 'points must be greater than 0'})
             }
+
         start = body['start'] if 'start' in body else ''
         end = body['end'] if 'end' in body else ''
+
         max_count = body['max_count'] if 'max_count' in body else 0
         if max_count < 0:
             return {
@@ -64,6 +67,12 @@ def lambda_handler(event, context):
                 update_expression += ", "
             update_expression += "description=:d"
             values[':d'] = description
+
+        if picture_id != '':
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "picture_id=:p"
+            values[':p'] = picture_id
 
         if points != 0:
             if len(values) > 0:

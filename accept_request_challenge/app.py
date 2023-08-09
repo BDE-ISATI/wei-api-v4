@@ -1,4 +1,4 @@
-import boto3, json, os, jwt
+import boto3, json, os, jwt, time
 
 
 def lambda_handler(event, context):
@@ -48,6 +48,20 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'body': json.dumps({"message": 'Player didn\'t request this challenge'})
+            }
+
+        # Get challenge
+        challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
+        challenge = challenge_table.get_item(
+            Key={
+                'challenge': body['challenge']
+            }
+        )['Item']
+
+        if challenge['start'] > int(time.time()) or challenge['end'] < int(time.time()):
+            return {
+                'statusCode': 400,
+                'body': json.dumps({"message": 'Challenge not active'})
             }
 
         index = response['Item']['challenges_pending'].index(body['challenge'])

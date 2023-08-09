@@ -46,6 +46,8 @@ Resources:
               type: string
             description:
               type: string
+            picture_id:
+              type: string
             points:
                 type: integer
             start:
@@ -62,6 +64,8 @@ Resources:
             name:
               type: string
             description:
+              type: string
+            picture_id:
               type: string
             points:
               type: integer
@@ -248,6 +252,24 @@ Resources:
                 Action: '*'
                 Resource: '*'
 
+
+  WeiAppPictureStorage:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: wei_app_picture_storage
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+              - HEAD
+            AllowedHeaders:
+              - '*'
+            MaxAge: 3000
   #
   # FUNCTIONS
   #
