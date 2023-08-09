@@ -86,6 +86,18 @@ Resources:
               type: string
             picture_id:
               type: string
+        AcceptJoinTeamModel:
+          type: object
+          required: [username]
+          properties:
+            username:
+              type: string
+        AcceptRequestChallengeModel:
+          type: object
+          required: [challenge]
+          properties:
+            challenge:
+              type: string
 
   #
   # COGNITO
@@ -361,6 +373,27 @@ Resources:
             Auth:
               Authorizer: CognitoAuthorizer
 
+  AcceptRequestChallengeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_accept_request_challenge
+      CodeUri: accept_request_challenge/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/{username}/accept
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: AcceptRequestChallengeModel
+              ValidateBody: true
+
   GetChallengeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -466,6 +499,9 @@ Resources:
             RestApiId: !Ref WeiAppApi
             Auth:
               Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: AcceptJoinTeamModel
+              ValidateBody: true
 
   GetTeamFunction:
     Type: AWS::Serverless::Function

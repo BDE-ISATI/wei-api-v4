@@ -51,117 +51,58 @@ def lambda_handler(event, context):
                 'body': json.dumps({"message": 'max_count must be greater than 0'})
             }
 
-        success = True
-        status = {}
+        names = {}
+        update_expression = "set "
+        values = {}
         if name != '':
-            response = challenge_table.update_item(
-                Key={
-                    'challenge': challenge_id
-                },
-                UpdateExpression="set #n=:n",  # Name is a reserved word in DynamoDB
-                ExpressionAttributeNames={
-                    '#n': 'name'
-                },
-                ExpressionAttributeValues={
-                    ':n': name
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['name'] = 'Failed to update name'
-            else:
-                status['name'] = 'Name updated successfully'
+            update_expression += "#n=:n"
+            names['#n'] = 'name'
+            values[':n'] = name
 
         if description != '':
-            response = challenge_table.update_item(
-                Key={
-                    'challenge': challenge_id
-                },
-                UpdateExpression="set description=:d",
-                ExpressionAttributeValues={
-                    ':d': description
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['description'] = 'Failed to update description'
-            else:
-                status['description'] = 'Description updated successfully'
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "description=:d"
+            values[':d'] = description
 
         if points != 0:
-            response = challenge_table.update_item(
-                Key={
-                    'challenge': challenge_id
-                },
-                UpdateExpression="set points=:p",
-                ExpressionAttributeValues={
-                    ':p': points
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['points'] = 'Failed to update points'
-            else:
-                status['points'] = 'Points updated successfully'
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "points=:p"
+            values[':p'] = points
 
         if start != '':
-            response = challenge_table.update_item(
-                Key={
-                    'challenge': challenge_id
-                },
-                UpdateExpression="set start=:s",
-                ExpressionAttributeValues={
-                    ':s': start
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['start'] = 'Failed to update start'
-            else:
-                status['start'] = 'Start updated successfully'
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "start=:s"
+            values[':s'] = start
 
         if end != '':
-            response = challenge_table.update_item(
-                Key={
-                    'challenge': challenge_id
-                },
-                UpdateExpression="set end=:e",
-                ExpressionAttributeValues={
-                    ':e': end
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['end'] = 'Failed to update end'
-            else:
-                status['end'] = 'End updated successfully'
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "end=:e"
+            values[':e'] = end
 
         if max_count != 0:
-            response = challenge_table.update_item(
-                Key={
-                    'challenge': challenge_id
-                },
-                UpdateExpression="set max_count=:m",
-                ExpressionAttributeValues={
-                    ':m': max_count
-                },
-                ReturnValues="UPDATED_NEW"
-            )
-            success = success and response['ResponseMetadata']['HTTPStatusCode'] == 200
-            if not success:
-                status['max_count'] = 'Failed to update max_count'
-            else:
-                status['max_count'] = 'Max count updated successfully'
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "max_count=:m"
+            values[':m'] = max_count
 
-        if not success:
+        response = challenge_table.update_item(
+            Key={
+                'challenge': challenge_id
+            },
+            UpdateExpression=update_expression,  # Name is a reserved word in DynamoDB
+            ExpressionAttributeNames=names,
+            ExpressionAttributeValues=values,
+            ReturnValues="UPDATED_NEW"
+        )
+
+        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error updating challenge', "status": status})
+                'body': json.dumps({"message": 'Error updating challenge'})
             }
 
         return {
