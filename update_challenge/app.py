@@ -1,28 +1,32 @@
-import boto3, json, os, jwt
+import boto3
+from json import loads as json_loads
+from json import dumps as json_dumps
+from jwt import decode
+from os import environ as os_environ
 
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json.dumps({"message": 'Unauthorized'})
+                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"})
             }
 
-        body = json.loads(event['body'])
+        body = json_loads(event['body'])
 
-        if len(body) == 0:
+        if 'name' not in body and 'description' not in body and 'picture_id' not in body and 'points' not in body and 'start' not in body and 'end' not in body and 'max_count' not in body:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'Missing parameters'})
+                'body': json_dumps({"message": 'Missing parameters', "err": "emptyBody"})
             }
 
         dynamodb = boto3.resource('dynamodb')
 
-        challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
+        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
         challenge_id = event['pathParameters']['challenge']
 
         name = body['name'] if 'name' in body else ''
@@ -32,7 +36,7 @@ def lambda_handler(event, context):
         if points < 0:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'points must be greater than 0'})
+                'body': json_dumps({"message": 'points must be greater than 0', "err": "invalidValue", "field": "points"})
             }
 
         start = body['start'] if 'start' in body else ''
@@ -42,7 +46,7 @@ def lambda_handler(event, context):
         if max_count < 0:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'max_count must be greater than 0'})
+                'body': json_dumps({"message": 'max_count must be greater than 0', "err": "invalidValue", "field": "max_count"})
             }
 
         names = {}
@@ -90,29 +94,41 @@ def lambda_handler(event, context):
             values[':m'] = max_count
 
         values[':c'] = challenge_id
-        response = challenge_table.update_item(
-            Key={
-                'challenge': challenge_id
-            },
-            UpdateExpression=update_expression,
-            ConditionExpression="challenge = :c",
-            ExpressionAttributeNames=names,
-            ExpressionAttributeValues=values,
-            ReturnValues="UPDATED_NEW"
-        )
+        if names != {}:
+            response = challenge_table.update_item(
+                Key={
+                    'challenge': challenge_id
+                },
+                UpdateExpression=update_expression,
+                ConditionExpression="challenge = :c",
+                ExpressionAttributeNames=names,
+                ExpressionAttributeValues=values,
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response = challenge_table.update_item(
+                Key={
+                    'challenge': challenge_id
+                },
+                UpdateExpression=update_expression,
+                ConditionExpression="challenge = :c",
+                ExpressionAttributeValues=values,
+                ReturnValues="UPDATED_NEW"
+            )
+
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error updating challenge'})
+                'body': json_dumps({"message": 'Error updating challenge', "err": "dynamodbError"})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Challenge updated successfully'})
+            'body': json_dumps({"message": 'Challenge updated successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error), "err": "internalError"})
         }

@@ -1,18 +1,21 @@
-import boto3, json, os, jwt
-
+import boto3
+from os import environ as os_environ
+from jwt import decode
+from json import loads as json_loads
+from json import dumps as json_dumps
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json.dumps({"message": 'Unauthorized'})
+                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"})
             }
 
-        body = json.loads(event['body'])
+        body = json_loads(event['body'])
 
         dynamodb = boto3.resource('dynamodb')
 
@@ -23,7 +26,7 @@ def lambda_handler(event, context):
         if points < 0:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'points must be greater than 0'})
+                'body': json_dumps({"message": 'points must be greater than 0', "err": "invalidValue", "field": "points"})
             }
         start = body['start']
         end = body['end']
@@ -31,10 +34,10 @@ def lambda_handler(event, context):
         if max_count < 1:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'max_count must be greater than 0'})
+                'body': json_dumps({"message": 'max_count must be greater than 0', "err": "invalidValue", "field": "max_count"})
             }
 
-        challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
+        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
         challenge_id = event['pathParameters']['challenge']
 
         response = challenge_table.put_item(
@@ -54,15 +57,15 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error creating challenge'})
+                'body': json_dumps({"message": 'Error creating challenge', "err": "dynamodbError"})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Challenge created successfully'})
+            'body': json_dumps({"message": 'Challenge created successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error), "err": "internalError"})
         }

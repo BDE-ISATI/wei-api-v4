@@ -1,54 +1,58 @@
-import boto3, json, os, jwt
+import boto3
+from os import environ as os_environ
+from jwt import decode
+from json import loads as json_loads
+from json import dumps as json_dumps
 
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json.dumps({"message": 'Unauthorized'})
+                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"})
             }
 
-        body = json.loads(event['body'])
+        body = json_loads(event['body'])
 
         dynamodb = boto3.resource('dynamodb')
 
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
-        team_name = event['pathParameters']['team']
+        teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
+        team_id = event['pathParameters']['team']
 
         # Get the team and check if user is in pending
         response = teams_table.get_item(
             Key={
-                'team': team_name
+                'team': team_id
             }
         )
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error getting team'})
+                'body': json_dumps({"message": 'Error getting team', "err": "dynamodbError"})
             }
 
         if 'Item' not in response:
             return {
                 'statusCode': 404,
-                'body': json.dumps({"message": 'Team not found'})
+                'body': json_dumps({"message": 'Team not found', "err": "notFound"})
             }
 
         if body['username'] not in response['Item']['pending']:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'Player not in pending'})
+                'body': json_dumps({"message": 'Player not in pending', "err": "notInPending"})
             }
 
         index = response['Item']['pending'].index(body['username'])
 
         response = teams_table.update_item(
             Key={
-                'team': team_name
+                'team': team_id
             },
             UpdateExpression=f'SET members = list_append(members, :player) REMOVE pending[{index}]',
             ExpressionAttributeValues={
@@ -60,15 +64,15 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error joining team'})
+                'body': json_dumps({"message": 'Error joining team', "err": "dynamodbError"})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Team joined successfully'})
+            'body': json_dumps({"message": 'Team joined successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error), "err": "internalError"})
         }

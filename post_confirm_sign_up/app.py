@@ -12,11 +12,12 @@ def lambda_handler(event, context):
         response = table.put_item(
             Item={
                 'username': event['userName'],
+                'display_name': event['userName'],
                 'mail': event['request']['userAttributes']['email'],
                 'challenges_done': [],
                 'challenges_pending': [],
                 'challenges_to_do': [],
-                'profile_picture_id': '',
+                'picture_id': '',
                 'show': True,
             }
         )

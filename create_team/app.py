@@ -1,22 +1,26 @@
-import boto3, json, os, jwt
+import boto3
+from jwt import decode
+from json import loads as json_loads
+from json import dumps as json_dumps
+from os import environ as os_environ
 
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json.dumps({"message": 'Unauthorized'})
+                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"})
             }
 
-        body = json.loads(event['body'])
+        body = json_loads(event['body'])
 
         dynamodb = boto3.resource('dynamodb')
 
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
+        teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
         team_name = event['pathParameters']['team']
 
         display_name = body['display_name']
@@ -36,15 +40,15 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error creating team'})
+                'body': json_dumps({"message": 'Error creating team', "err": "dynamodbError"})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Team created successfully'})
+            'body': json_dumps({"message": 'Team created successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error), "err": "internalError"})
         }

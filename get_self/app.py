@@ -1,15 +1,14 @@
-import json
 import boto3
-import os
-import jwt
-import time
+from os import environ as os_environ
+from jwt import decode
+from json import dumps as json_dumps
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'], options={"verify_signature": False})
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'], options={"verify_signature": False})
 
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(os.environ['USER_TABLE'])
+        table = dynamodb.Table(os_environ['USER_TABLE'])
 
         # Get user from event.pathParameters.username
         response = table.get_item(
@@ -18,14 +17,20 @@ def lambda_handler(event, context):
             }
         )
 
+        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+            return {
+                'statusCode': 500,
+                'body': json_dumps({"message": 'Error retrieving user', "err": "dynamodbError"})
+            }
+
         # Create response, if empty return 404
         if 'Item' not in response:
             return {
                 "statusCode": 404,
-                "body": json.dumps({"message": "User not found"})
+                "body": json_dumps({"message": "User not found", "err": "notFound"})
             }
 
-        challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
+        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
         challenges = challenge_table.scan()
 
         response['Item']['points'] = 0
@@ -39,11 +44,11 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json.dumps(response['Item'], default=int)
+            "body": json_dumps(response['Item'], default=int)
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error), "err": "internalError"})
         }
 

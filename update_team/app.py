@@ -1,28 +1,32 @@
-import boto3, json, os, jwt
+import boto3
+from jwt import decode
+from json import loads as json_loads
+from json import dumps as json_dumps
+from os import environ as os_environ
 
 
 def lambda_handler(event, context):
     try:
-        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                            options={"verify_signature": False})
 
         if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json.dumps({"message": 'Unauthorized'})
+                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"})
             }
 
-        body = json.loads(event['body'])
+        body = json_loads(event['body'])
 
-        if len(body) == 0:
+        if 'display_name' not in body and 'picture_id' not in body:
             return {
                 'statusCode': 400,
-                'body': json.dumps({"message": 'Missing body'})
+                'body': json_dumps({"message": 'Missing body', "err": "emptyBody"})
             }
 
         dynamodb = boto3.resource('dynamodb')
 
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
+        teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
         team_name = event['pathParameters']['team']
 
         display_name = body['display_name'] if 'display_name' in body else ''
@@ -54,15 +58,15 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error updating team'})
+                'body': json_dumps({"message": 'Error updating team', "err": "dynamodbError"})
             }
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Team updated successfully'})
+            'body': json_dumps({"message": 'Team updated successfully'})
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error), "err": "internalError"})
         }

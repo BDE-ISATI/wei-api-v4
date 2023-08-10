@@ -1,4 +1,5 @@
-import boto3, os
+import boto3
+from os import environ as os_environ
 from jwt import decode
 from json import dumps as json_dumps
 
@@ -13,10 +14,10 @@ def lambda_handler(event, context):
         if 'cognito:groups' in token and 'Admin' in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json_dumps({"message": 'You must be a player to join a team'})
+                'body': json_dumps({"message": 'You must be a player to join a team', "err": "unauthorized"})
             }
 
-        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
+        teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
         team_name = event['pathParameters']['team']
 
         response = teams_table.scan(
@@ -29,13 +30,13 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error joining team'})
+                'body': json_dumps({"message": 'Error retrieving teams', "err": "dynamodbError"})
             }
 
         if len(response['Items']) > 0:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'You are already in a team.'})
+                'body': json_dumps({"message": 'You are already in a team.', "err": "alreadyInTeam"})
             }
 
         response = teams_table.update_item(
@@ -54,7 +55,7 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error joining team'})
+                'body': json_dumps({"message": 'Error updating team', "err": "dynamodbError"})
             }
 
         return {
@@ -64,5 +65,5 @@ def lambda_handler(event, context):
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error)})
+            "body": json_dumps({"message": str(error), "err": "internalError"})
         }

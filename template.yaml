@@ -39,7 +39,7 @@ Resources:
       Models:
         CreateChallengeModel:
           type: object
-          required: [name, description, points, start, end]
+          required: [ name, description, points, start, end ]
           properties:
             challenge:
               type: string
@@ -50,7 +50,7 @@ Resources:
             picture_id:
               type: string
             points:
-                type: integer
+              type: integer
             start:
               type: integer
             end:
@@ -78,7 +78,7 @@ Resources:
               type: integer
         CreateTeamModel:
           type: object
-          required: [display_name, picture_id]
+          required: [ display_name, picture_id ]
           properties:
             display_name:
               type: string
@@ -93,15 +93,24 @@ Resources:
               type: string
         AcceptJoinTeamModel:
           type: object
-          required: [username]
+          required: [ username ]
           properties:
             username:
               type: string
         AcceptRequestChallengeModel:
           type: object
-          required: [challenge]
+          required: [ challenge ]
           properties:
             challenge:
+              type: string
+        UpdateSelfModel:
+          type: object
+          properties:
+            show:
+              type: boolean
+            display_name:
+              type: string
+            picture_id:
               type: string
 
   #
@@ -130,9 +139,9 @@ Resources:
         - Name: email
           Required: True
           Mutable: False
-#        - Name: preferred_username
-#          Required: True
-#          Mutable: False
+      #        - Name: preferred_username
+      #          Required: True
+      #          Mutable: False
       VerificationMessageTemplate:
         DefaultEmailOption: CONFIRM_WITH_LINK
       EmailVerificationSubject: "WEI - Vérification de votre adresse email"
@@ -172,26 +181,26 @@ Resources:
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_CUSTOM_AUTH
 
-#  WeiAppUserPoolAdminGroup:
-#    Type: AWS::Cognito::UserPoolGroup
-#    Properties:
-#      Description: Admin group
-#      GroupName: Admin
-#      UserPoolId: !Ref WeiAppUserPool
-#
-#  WeiAppUserPoolManagerGroup:
-#    Type: AWS::Cognito::UserPoolGroup
-#    Properties:
-#      Description: Manager group
-#      GroupName: Manager
-#      UserPoolId: !Ref WeiAppUserPool
-#
-#  WeiAppUserPoolPlayerGroup:
-#    Type: AWS::Cognito::UserPoolGroup
-#    Properties:
-#      Description: Player group
-#      GroupName: Player
-#      UserPoolId: !Ref WeiAppUserPool
+  #  WeiAppUserPoolAdminGroup:
+  #    Type: AWS::Cognito::UserPoolGroup
+  #    Properties:
+  #      Description: Admin group
+  #      GroupName: Admin
+  #      UserPoolId: !Ref WeiAppUserPool
+  #
+  #  WeiAppUserPoolManagerGroup:
+  #    Type: AWS::Cognito::UserPoolGroup
+  #    Properties:
+  #      Description: Manager group
+  #      GroupName: Manager
+  #      UserPoolId: !Ref WeiAppUserPool
+  #
+  #  WeiAppUserPoolPlayerGroup:
+  #    Type: AWS::Cognito::UserPoolGroup
+  #    Properties:
+  #      Description: Player group
+  #      GroupName: Player
+  #      UserPoolId: !Ref WeiAppUserPool
 
   #
   # DB
@@ -246,9 +255,9 @@ Resources:
           - Effect: Allow
             Principal:
               Service:
-               - lambda.amazonaws.com
-               - apigateway.amazonaws.com
-               - dynamodb.amazonaws.com
+                - lambda.amazonaws.com
+                - apigateway.amazonaws.com
+                - dynamodb.amazonaws.com
             Action:
               - 'sts:AssumeRole'
       Policies:
@@ -259,7 +268,6 @@ Resources:
               - Effect: Allow
                 Action: '*'
                 Resource: '*'
-
 
   WeiAppPictureStorage:
     Type: AWS::S3::Bucket
@@ -278,6 +286,7 @@ Resources:
             AllowedHeaders:
               - '*'
             MaxAge: 3000
+
   #
   # FUNCTIONS
   #
@@ -342,6 +351,26 @@ Resources:
             Auth:
               Authorizer: CognitoAuthorizer
 
+  UpdateSelfFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_update_self
+      CodeUri: update_self/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /users/me
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: UpdateSelfModel
+              ValidateBody: true
 
   CreateChallengeFunction:
     Type: AWS::Serverless::Function
@@ -575,10 +604,11 @@ Resources:
       ContentUri: dependencies/
       CompatibleRuntimes:
         - python3.11
+
 Outputs:
   UserPoolClientID:
     Value: !Ref WeiAppUserPoolClient
     Description: User Pool Client ID
   ApiUrl:
-    Value:  !Sub https://${WeiAppApi}.execute-api.${AWS::Region}.amazonaws.com
+    Value: !Sub https://${WeiAppApi}.execute-api.${AWS::Region}.amazonaws.com
     Description: API Endpoint URL
