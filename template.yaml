@@ -10,6 +10,9 @@ Parameters:
       - prod
       - dev
     Description: Stage name
+  WeiAppPictureStorageBucketName:
+    Type: String
+    Default: wei-app-picture-storage
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -24,7 +27,6 @@ Globals:
         USER_TABLE: !Ref WeiAppUsers
         CHALLENGES_TABLE: !Ref WeiAppChallenges
         TEAMS_TABLE: !Ref WeiAppTeams
-        PICTURE_BUCKET: !Ref WeiAppPictureStorage
 
 Resources:
   WeiAppApi:
@@ -36,6 +38,10 @@ Resources:
         Authorizers:
           CognitoAuthorizer:
             UserPoolArn: !GetAtt WeiAppUserPool.Arn
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
       Models:
         CreateChallengeModel:
           type: object
@@ -111,6 +117,12 @@ Resources:
             display_name:
               type: string
             picture_id:
+              type: string
+        RequestPictureIDModel:
+          type: object
+          required: [ usage ]
+          properties:
+            usage:
               type: string
 
   #
@@ -271,8 +283,23 @@ Resources:
 
   WeiAppPictureStorage:
     Type: AWS::S3::Bucket
+    DependsOn: WeiAppS3CallFunctionPermission
     Properties:
-      BucketName: wei-app-picture-storage
+      BucketName: !Ref WeiAppPictureStorageBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: False
+        BlockPublicPolicy: False
+        IgnorePublicAcls: False
+        RestrictPublicBuckets: False
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt ResizePictureFunction.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: 'unprocessed'
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins:
@@ -286,6 +313,28 @@ Resources:
             AllowedHeaders:
               - '*'
             MaxAge: 3000
+
+  WeiAppS3CallFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref ResizePictureFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref "AWS::AccountId"
+      SourceArn: !Sub "arn:aws:s3:::${WeiAppPictureStorageBucketName}"
+
+  WeiAppS3PublicPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WeiAppPictureStorage
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${WeiAppPictureStorageBucketName}/*'
 
   #
   # FUNCTIONS
@@ -597,11 +646,52 @@ Resources:
       CodeUri: post_confirm_sign_up/
       Role: !GetAtt AllowAllRole.Arn
 
+  RequestPictureIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_request_picture_id
+      CodeUri: request_picture_id/
+      Role: !GetAtt AllowAllRole.Arn
+      Environment:
+        Variables:
+          PICTURE_BUCKET: !Ref WeiAppPictureStorage
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /picture
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+            RequestModel:
+              Model: RequestPictureIDModel
+              ValidateBody: true
+
+  ResizePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_resize_picture
+      CodeUri: resize_picture/
+      Role: !GetAtt AllowAllRole.Arn
+      MemorySize: 1024
+      Timeout: 5
+      Layers:
+        - !Ref PillowLayer
+
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: DependenciesLayer
       ContentUri: dependencies/
+      CompatibleRuntimes:
+        - python3.11
+
+  PillowLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: PillowLayer
+      ContentUri: pillowlayer/
       CompatibleRuntimes:
         - python3.11
 

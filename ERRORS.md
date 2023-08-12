@@ -10,3 +10,4 @@
 - `alreadyInTeam`: The user is already in a team.
 - `challengeLimit`: The user has reached the maximum number of challenges.
 - `challengeNotActive`: The challenge is not active.
+- `invalidUsage`: Trying to request a picture id for invalid usage.
