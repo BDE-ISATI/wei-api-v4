@@ -8,6 +8,7 @@
 - `internalError`: Undocumented error, please refer to the error message for more information.
 - `invalidValue`: The provided value for `field` is invalid.
 - `alreadyInTeam`: The user is already in a team.
+- `notInTeam`: The user is not in a team.
 - `challengeLimit`: The user has reached the maximum number of challenges.
 - `challengeNotActive`: The challenge is not active.
 - `invalidUsage`: Trying to request a picture id for invalid usage.

@@ -590,6 +590,24 @@ Resources:
             Auth:
               Authorizer: CognitoAuthorizer
 
+  LeaveTeamFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_leave_team
+      CodeUri: leave_team/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /teams/leave
+            Method: post
+            RestApiId: !Ref WeiAppApi
+            Auth:
+              Authorizer: CognitoAuthorizer
+
   AcceptJoinTeamFunction:
     Type: AWS::Serverless::Function
     Properties:
