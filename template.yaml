@@ -17,7 +17,7 @@ Parameters:
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 5
     Runtime: python3.11
     Handler: app.lambda_handler
     Architectures:
@@ -34,6 +34,8 @@ Resources:
     Properties:
       Name: wei_app_api
       StageName: !Ref StageParameter
+      EndpointConfiguration:
+        Type: REGIONAL
       Auth:
         Authorizers:
           CognitoAuthorizer:
@@ -693,7 +695,7 @@ Resources:
       CodeUri: resize_picture/
       Role: !GetAtt AllowAllRole.Arn
       MemorySize: 1024
-      Timeout: 5
+      Timeout: 10
       Layers:
         - !Ref PillowLayer
 
