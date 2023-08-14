@@ -27,6 +27,7 @@ Globals:
         USER_TABLE: !Ref WeiAppUsers
         CHALLENGES_TABLE: !Ref WeiAppChallenges
         TEAMS_TABLE: !Ref WeiAppTeams
+        CACHE_TIME: 60
 
 Resources:
   WeiAppApi:

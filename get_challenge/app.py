@@ -1,8 +1,19 @@
 import boto3
 from os import environ as os_environ
 from json import dumps as json_dumps
+from time import time
+
+cache = {}
+cache_time = {}
 
 def lambda_handler(event, context):
+    global cache
+    global cache_time
+
+    challenge_id = event['pathParameters']['challenge']
+    if challenge_id in cache and time() < cache_time[challenge_id] + int(os_environ['CACHE_TIME']):
+        return cache[challenge_id]
+
     try:
         dynamodb = boto3.resource('dynamodb')
         table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
@@ -10,7 +21,7 @@ def lambda_handler(event, context):
         # Get user from event.pathParameters.username
         response = table.get_item(
             Key={
-                'challenge': event['pathParameters']['challenge']
+                'challenge': challenge_id
             }
         )
 
@@ -27,10 +38,12 @@ def lambda_handler(event, context):
                 "body": json_dumps({"message": "Challenge not found", "err": "notFound"})
             }
 
-        return {
+        cache[challenge_id] = {
             "statusCode": 200,
             "body": json_dumps(response['Item'], default=int)
         }
+        cache_time[challenge_id] = time()
+        return cache[challenge_id]
     except Exception as error:
         return {
             'statusCode': 500,

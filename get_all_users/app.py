@@ -10,7 +10,7 @@ def lambda_handler(event, context):
     global cache
     global cache_time
 
-    if cache is not None and time() < cache_time + 10:
+    if cache is not None and time() < cache_time + int(os_environ['CACHE_TIME']):
         return cache
 
     try:
