@@ -16,31 +16,42 @@ def lambda_handler(event, context):
 
     try:
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
+        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
+        user_table = dynamodb.Table(os_environ['USER_TABLE'])
 
         # Get user from event.pathParameters.username
-        response = table.get_item(
+        challenge = challenge_table.get_item(
             Key={
                 'challenge': challenge_id
             }
         )
 
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if challenge['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving challenge', "err": "dynamodbError"})
             }
 
-        # Create response, if empty return 404
-        if 'Item' not in response:
+        if 'Item' not in challenge:
             return {
                 "statusCode": 404,
                 "body": json_dumps({"message": "Challenge not found", "err": "notFound"})
             }
 
+        users = user_table.scan()
+
+        if users['ResponseMetadata']['HTTPStatusCode'] != 200:
+            return {
+                'statusCode': 500,
+                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"})
+            }
+
+        t = list(filter(lambda x: challenge['Item']['challenge'] in x['challenges_done'], users['Items']))
+        challenge['Item']['users'] = [{ 'username': x['username'], 'picture_id': x['picture_id'] if 'picture_id' in x else ''} for x in t]
+
         cache[challenge_id] = {
             "statusCode": 200,
-            "body": json_dumps(response['Item'], default=int)
+            "body": json_dumps(challenge['Item'], default=int)
         }
         cache_time[challenge_id] = time()
         return cache[challenge_id]

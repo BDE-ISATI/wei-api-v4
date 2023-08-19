@@ -6,6 +6,7 @@ from time import time
 cache = None
 cache_time = 0
 
+
 def lambda_handler(event, context):
     global cache
     global cache_time
@@ -15,21 +16,32 @@ def lambda_handler(event, context):
 
     try:
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
+        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
+        user_table = dynamodb.Table(os_environ['USER_TABLE'])
 
-        # Get all users
-        response = table.scan()
+        challenges = challenge_table.scan()
 
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if challenges['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"})
             }
 
-        # Create response
+        users = user_table.scan()
+
+        if users['ResponseMetadata']['HTTPStatusCode'] != 200:
+            return {
+                'statusCode': 500,
+                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"})
+            }
+
+        for challenge in challenges['Items']:
+            t = list(filter(lambda x: challenge['challenge'] in x['challenges_done'], users['Items']))
+            challenge['users'] = [{"username": x['username'], "picture_id": x["picture_id"] if 'picture_id' in x else ''} for x in t]
+
         cache = {
             "statusCode": 200,
-            "body": json_dumps(response['Items'], default=int)
+            "body": json_dumps(challenges['Items'], default=int)
         }
         cache_time = time()
         return cache
