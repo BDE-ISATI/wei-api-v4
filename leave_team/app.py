@@ -40,7 +40,7 @@ def lambda_handler(event, context):
 
         team_name = response['Items'][0]['team']
 
-        # If player is in pending
+        # If player is in pending remove from pending, else remove from members
         if token['cognito:username'] in response['Items'][0]['pending']:
             index = response['Items'][0]['pending'].index(token['cognito:username'])
             response = teams_table.update_item(

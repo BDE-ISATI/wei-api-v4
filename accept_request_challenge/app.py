@@ -28,31 +28,33 @@ def lambda_handler(event, context):
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
         username = event['pathParameters']['username']
         # Get the team and check if user is in pending
-        response = user_table.get_item(
+        user = user_table.get_item(
             Key={
                 'username': username
             }
         )
 
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error getting user', "err": "dynamodbError"})
             }
 
-        if 'Item' not in response:
+        if 'Item' not in user:
             return {
                 'statusCode': 404,
                 'body': json_dumps({"message": 'User not found', "err": "notFound"})
             }
 
-        if body['challenge'] not in response['Item']['challenges_pending']:
+        user = user['Item']
+
+        if body['challenge'] not in user['challenges_pending']:
             return {
                 'statusCode': 400,
                 'body': json_dumps({"message": 'Player didn\'t request this challenge', "err": "notInPending"})
             }
 
-        index = response['Item']['challenges_pending'].index(body['challenge'])
+        index = user['challenges_pending'].index(body['challenge'])
 
         response = user_table.update_item(
             Key={

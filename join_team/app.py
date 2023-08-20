@@ -20,19 +20,18 @@ def lambda_handler(event, context):
         teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
         team_name = event['pathParameters']['team']
 
+        # Check if player is already in a team
         response = teams_table.scan(
             FilterExpression='contains(members, :player) OR contains(pending, :player)',
             ExpressionAttributeValues={
                 ':player': token['cognito:username']
             }
         )
-
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving teams', "err": "dynamodbError"})
             }
-
         if len(response['Items']) > 0:
             return {
                 'statusCode': 400,

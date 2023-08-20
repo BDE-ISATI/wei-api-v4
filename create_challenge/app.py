@@ -19,6 +19,7 @@ def lambda_handler(event, context):
 
         dynamodb = boto3.resource('dynamodb')
 
+        # Challenge data
         name = body['name']
         description = body['description']
         picture_id = body['picture_id'] if 'picture_id' in body else ''

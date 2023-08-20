@@ -6,6 +6,7 @@ from time import time
 cache = {}
 cache_time = {}
 
+
 def lambda_handler(event, context):
     global cache
     global cache_time
@@ -16,63 +17,54 @@ def lambda_handler(event, context):
 
     try:
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(os_environ['TEAMS_TABLE'])
 
-        # Get user from event.pathParameters.username
-        team = table.get_item(
-            Key={
-                'team': team_name
-            }
-        )
-
+        team_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
+        team = team_table.get_item(Key={'team': team_name})
         if team['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving team', "err": "dynamodbError"})
             }
-
-        user_table = dynamodb.Table(os_environ['USER_TABLE'])
-        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
-
-        # Get all users
-        users = user_table.scan()
-
-        if users['ResponseMetadata']['HTTPStatusCode'] != 200:
-            return {
-                'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"})
-            }
-
-        # Create response, if empty return 404
         if 'Item' not in team:
             return {
                 "statusCode": 404,
                 "body": json_dumps({"message": "Team not found", "err": "notFound"})
             }
-
         team = team['Item']
+
+        user_table = dynamodb.Table(os_environ['USER_TABLE'])
+        users = user_table.scan()
+        if users['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in users:
+            return {
+                'statusCode': 500,
+                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"})
+            }
+        users = users['Items']
+
+        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
         challenges = challenge_table.scan()
-
-
-        if challenges['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if challenges['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in challenges:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving challenges', 'err': 'dynamodbError'})
             }
+        challenges = challenges['Items']
 
         team['points'] = 0
         members = []
         for user_id in team['members']:
-            user = list(filter(lambda x: x['username'] == user_id, users['Items']))[0]
+            user = list(filter(lambda x: x['username'] == user_id, users))[0]
             user['points'] = 0
             for challenge_id in user['challenges_done']:
-                t = list(filter(lambda x: x['challenge'] == challenge_id, challenges['Items']))
+                t = list(filter(lambda x: x['challenge'] == challenge_id, challenges))
                 if len(t) == 0:
                     continue
                 challenge = t[0]
                 user['points'] += challenge['points']
             team['points'] += user['points']
-            members.append({'username': user['username'], "display_name": user['display_name'], 'points': user['points'], 'picture_id': user['picture_id']})
+            members.append(
+                {'username': user['username'], "display_name": user['display_name'], 'points': user['points'],
+                 'picture_id': user['picture_id']})
             team['members'] = members
 
         cache[team_name] = {
@@ -86,4 +78,3 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": json_dumps({"message": str(error), "err": "internalError"})
         }
-

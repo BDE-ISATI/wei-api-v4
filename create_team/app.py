@@ -21,8 +21,8 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
 
         teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
-        team_name = event['pathParameters']['team']
 
+        team_name = event['pathParameters']['team']
         display_name = body['display_name']
         picture_id = body['picture_id']
 

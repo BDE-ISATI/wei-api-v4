@@ -24,31 +24,33 @@ def lambda_handler(event, context):
         team_id = event['pathParameters']['team']
 
         # Get the team and check if user is in pending
-        response = teams_table.get_item(
+        team = teams_table.get_item(
             Key={
                 'team': team_id
             }
         )
 
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if team['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error getting team', "err": "dynamodbError"})
             }
 
-        if 'Item' not in response:
+        if 'Item' not in team:
             return {
                 'statusCode': 404,
                 'body': json_dumps({"message": 'Team not found', "err": "notFound"})
             }
 
-        if body['username'] not in response['Item']['pending']:
+        team = team['Item']
+
+        if body['username'] not in team['pending']:
             return {
                 'statusCode': 400,
                 'body': json_dumps({"message": 'Player not in pending', "err": "notInPending"})
             }
 
-        index = response['Item']['pending'].index(body['username'])
+        index = team['pending'].index(body['username'])
 
         response = teams_table.update_item(
             Key={

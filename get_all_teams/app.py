@@ -19,48 +19,49 @@ def lambda_handler(event, context):
 
         teams = teams_table.scan()
 
-        if teams['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if teams['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in teams:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"})
             }
 
+        teams = teams['Items']
+
         # Get all users
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
-        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
-
-        # Get all users
         users = user_table.scan()
-
-        if users['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if users['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in users:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"})
             }
 
+        users = users['Items']
+
+        # Get all challenges
+        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
         challenges = challenge_table.scan()
-
-
-        if challenges['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if challenges['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in challenges:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"})
             }
+        challenges = challenges['Items']
 
-        for user in users['Items']:
+        for user in users:
             user['points'] = 0
             for challenge_id in user['challenges_done']:
-                t = list(filter(lambda x: x['challenge'] == challenge_id, challenges['Items']))
+                t = list(filter(lambda x: x['challenge'] == challenge_id, challenges))
                 if len(t) == 0:
                     continue
                 challenge = t[0]
                 user['points'] += challenge['points']
 
-        for team in teams['Items']:
+        for team in teams:
             team['points'] = 0
             members = []
             for user_id in team['members']:
-                t = list(filter(lambda x: x['username'] == user_id, users['Items']))
+                t = list(filter(lambda x: x['username'] == user_id, users))
                 if len(t) == 0:
                     continue
                 user = t[0]
@@ -71,7 +72,7 @@ def lambda_handler(event, context):
         # Create response
         cache =  {
             "statusCode": 200,
-            "body": json_dumps(teams['Items'], default=int)
+            "body": json_dumps(teams, default=int)
         }
         cache_time = int(time())
         return cache
