@@ -56,14 +56,16 @@ def lambda_handler(event, context):
                 challenge = t[0]
                 user['points'] += challenge['points']
 
-        # Add points to teams
         for team in teams['Items']:
             team['points'] = 0
+            members = []
             for user_id in team['members']:
                 t = list(filter(lambda x: x['username'] == user_id, users['Items']))
                 if len(t) == 0:
                     continue
                 user = t[0]
+                members.append({"username": user['username'], 'display_name': user['display_name'], "points": user['points'], "picture_id": user['picture_id']})
+                team['members'] = members
                 team['points'] += user['points']
 
         # Create response

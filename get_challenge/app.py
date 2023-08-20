@@ -47,7 +47,7 @@ def lambda_handler(event, context):
             }
 
         t = list(filter(lambda x: challenge['Item']['challenge'] in x['challenges_done'], users['Items']))
-        challenge['Item']['users'] = [{ 'username': x['username'], 'picture_id': x['picture_id'] if 'picture_id' in x else ''} for x in t]
+        challenge['Item']['users'] = [{ 'username': x['username'], 'display_name': x['display_name'], 'picture_id': x['picture_id'] if 'picture_id' in x else ''} for x in t]
 
         cache[challenge_id] = {
             "statusCode": 200,

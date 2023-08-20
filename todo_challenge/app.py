@@ -1,6 +1,5 @@
 import boto3
 from os import environ as os_environ
-from time import time
 from jwt import decode
 from json import dumps as json_dumps
 
@@ -19,25 +18,49 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
 
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
-        user = user_table.get_item(Key={'username': token['cognito:username']})['Item']
+
+        username = token['cognito:username']
+        challenge_id = event['pathParameters']['challenge']
+
+        user = user_table.get_item(Key={'username': username})
+
+        if user['ResponseMetadata']['HTTPStatusCode'] != 200:
+            return {
+                'statusCode': 500,
+                'body': json_dumps({"message": 'Error getting user', "err": "dynamodbError"})
+            }
+
+        if 'Item' not in user:
+            return {
+                'statusCode': 404,
+                'body': json_dumps({"message": 'User not found', "err": "notFound"})
+            }
+
+        user = user['Item']
+
+        if challenge_id in user['challenges_to_do']:
+            return {
+                'statusCode': 400,
+                'body': json_dumps({"message": 'Challenge already in todo', "err": "alreadyInTodo"})
+            }
 
         # Get challenge
         challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
-        response = challenge_table.get_item(Key={'challenge': event['pathParameters']['challenge']})
+        challenge = challenge_table.get_item(Key={'challenge': challenge_id})
 
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if challenge['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 404,
                 'body': json_dumps({"message": 'Error connecting to database', "err": "dynamodbError"})
             }
 
-        if 'Item' not in response:
+        if 'Item' not in challenge:
             return {
                 'statusCode': 404,
                 'body': json_dumps({"message": 'Challenge not found', "err": "notFound"})
             }
 
-        challenge = response['Item']
+        challenge = challenge['Item']
 
         user_table.update_item(
             Key={

@@ -21,60 +21,57 @@ def lambda_handler(event, context):
                 'body': json_dumps({"message": 'Missing body', "err": "emptyBody"})
             }
 
-        body = json_loads(event['body'])
-
         dynamodb = boto3.resource('dynamodb')
 
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
-        username = event['pathParameters']['username']
+
+        username = token['cognito:username']
+        challenge_id = event['pathParameters']['challenge']
 
         # Get the team and check if user is in pending
-        response = user_table.get_item(
+        user = user_table.get_item(
             Key={
                 'username': username
             }
         )
 
-        if response['ResponseMetadata']['HTTPStatusCode'] != 200:
+        if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
                 'body': json_dumps({"message": 'Error getting user', "err": "dynamodbError"})
             }
 
-        if 'Item' not in response:
+        if 'Item' not in user:
             return {
                 'statusCode': 404,
                 'body': json_dumps({"message": 'User not found', "err": "notFound"})
             }
 
-        if body['challenge'] not in response['Item']['challenges_pending']:
+        if challenge_id not in user['Item']['challenges_to_do']:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'Player didn\'t request this challenge', "err": "notInPending"})
+                'body': json_dumps({"message": 'Challenge not in todo', "err": "notInTodo"})
             }
 
-        index = response['Item']['challenges_pending'].index(body['challenge'])
+        index = user['Item']['challenges_to_do'].index(challenge_id)
 
         response = user_table.update_item(
             Key={
                 'username': username
             },
-            UpdateExpression=f'SET challenges_done = list_append(challenges_done, :challenge) REMOVE challenges_pending[{index}]',
-            ExpressionAttributeValues={
-                ':challenge': [body['challenge']]
-            },
+            UpdateExpression=f'REMOVE challenges_to_do[{index}]',
             ReturnValues="UPDATED_NEW"
         )
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error accepting challenge', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error removing todo challenge', "err": "dynamodbError"})
             }
 
         return {
             'statusCode': 200,
-            'body': json_dumps({"message": 'Challenge accepted'})
+            'body': json_dumps({"message": 'Challenge removed from todo'})
         }
     except Exception as error:
         return {

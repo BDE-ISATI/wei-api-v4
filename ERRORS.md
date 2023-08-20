@@ -12,3 +12,5 @@
 - `challengeLimit`: The user has reached the maximum number of challenges.
 - `challengeNotActive`: The challenge is not active.
 - `invalidUsage`: Trying to request a picture id for invalid usage.
+- `notInTodo`: The challenge is not in the user's todo list.
+- `alreadyInTodo`: The challenge is already in the user's todo list.

@@ -519,6 +519,38 @@ Resources:
             Method: get
             RestApiId: !Ref WeiAppApi
 
+  AddTodoChallengeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_todo_challenge
+      CodeUri: todo_challenge/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /challenges/{challenge}/todo
+            Method: post
+            RestApiId: !Ref WeiAppApi
+
+  RemoveTodoChallengeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_remove_todo_challenge
+      CodeUri: remove_todo_challenge/
+      Role: !GetAtt AllowAllRole.Arn
+      Layers:
+        - !Ref DependenciesLayer
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /challenges/{challenge}/todo
+            Method: delete
+            RestApiId: !Ref WeiAppApi
+
   GetAllChallengesFunction:
     Type: AWS::Serverless::Function
     Properties:

@@ -57,18 +57,23 @@ def lambda_handler(event, context):
         if challenges['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving challenges', 'err': 'dynamodbError'})
             }
 
         team['points'] = 0
+        members = []
         for user_id in team['members']:
             user = list(filter(lambda x: x['username'] == user_id, users['Items']))[0]
+            user['points'] = 0
             for challenge_id in user['challenges_done']:
                 t = list(filter(lambda x: x['challenge'] == challenge_id, challenges['Items']))
                 if len(t) == 0:
                     continue
                 challenge = t[0]
-                team['points'] += challenge['points']
+                user['points'] += challenge['points']
+            team['points'] += user['points']
+            members.append({'username': user['username'], "display_name": user['display_name'], 'points': user['points'], 'picture_id': user['picture_id']})
+            team['members'] = members
 
         cache[team_name] = {
             "statusCode": 200,

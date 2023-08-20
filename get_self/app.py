@@ -42,6 +42,7 @@ def lambda_handler(event, context):
             challenge = t[0]
             response['Item']['points'] += challenge['points']
 
+        response['Item']['is_admin'] = 'cognito:groups' in token and 'Admin' in token['cognito:groups']
         return {
             "statusCode": 200,
             "body": json_dumps(response['Item'], default=int)
