@@ -2,7 +2,6 @@ import boto3
 from PIL import Image
 from io import BytesIO
 from json import dumps as json_dumps
-from json import loads as json_loads
 
 client = boto3.client('s3')
 

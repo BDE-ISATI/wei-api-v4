@@ -31,8 +31,10 @@ def lambda_handler(event, context):
             ClientMethod='put_object',
             Params={
                 'Bucket': bucket,
-                'Key': fullpath
-            }
+                'Key': fullpath,
+                'ContentType': 'text/plain'
+            },
+            HttpMethod="PUT"
         )
 
         return {
