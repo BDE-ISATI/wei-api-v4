@@ -6,6 +6,16 @@ from time import time
 cache = {}
 cache_time = {}
 
+
+def format_user(user, challenge_id):
+    v = {"username": user['username'], 'display_name': user['display_name'],
+         "picture_id": user["picture_id"] if 'picture_id' in user else '', 'time': -1}
+
+    if 'challenges_times' in user and challenge_id in user['challenges_times']:
+        v['time'] = user['challenges_times'][challenge_id]
+
+    return v
+
 def lambda_handler(event, context):
     global cache
     global cache_time
@@ -48,7 +58,7 @@ def lambda_handler(event, context):
         users = users['Items']
 
         t = list(filter(lambda x: challenge['challenge'] in x['challenges_done'], users))
-        challenge['users'] = [{ 'username': x['username'], 'display_name': x['display_name'], 'picture_id': x['picture_id'] if 'picture_id' in x else ''} for x in t]
+        challenge['users'] = [format_user(x, challenge_id) for x in t]
 
         cache[challenge_id] = {
             "statusCode": 200,

@@ -78,13 +78,15 @@ def lambda_handler(event, context):
         if start != '':
             if len(values) > 0:
                 update_expression += ", "
-            update_expression += "start=:s"
+            names['#s'] = 'start'
+            update_expression += "#s=:s"
             values[':s'] = start
 
         if end != '':
             if len(values) > 0:
                 update_expression += ", "
-            update_expression += "end=:e"
+            names['#e'] = 'end'
+            update_expression += "#e=:e"
             values[':e'] = end
 
         if max_count != 0:
