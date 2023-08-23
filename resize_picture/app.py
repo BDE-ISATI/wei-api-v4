@@ -23,7 +23,7 @@ def lambda_handler(event, context):
     buffer = BytesIO()
     img.save(buffer, "PNG")
     buffer.seek(0)
-    sent_data = client.put_object(Bucket=bucket_name, Key=image_name.split('/')[1] + ".png", Body=buffer)
+    sent_data = client.put_object(Bucket=bucket_name, Key=image_name.split('/')[1] + ".png", Body=buffer, ContentType='image/png')
     if sent_data['ResponseMetadata']['HTTPStatusCode'] != 200:
         raise RuntimeError('Failed to upload image {} to bucket {}'.format(image_name, bucket_name))
 
