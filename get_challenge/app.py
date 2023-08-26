@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     global cache_time
 
     challenge_id = event['pathParameters']['challenge']
-    if challenge_id in cache and time() < cache_time[challenge_id] + int(os_environ['CACHE_TIME']):
+    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (challenge_id in cache and time() < cache_time[challenge_id] + int(os_environ['CACHE_TIME'])):
         return cache[challenge_id]
 
     try:

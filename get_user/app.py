@@ -1,13 +1,23 @@
 import boto3
 from os import environ as os_environ
 from json import dumps as json_dumps
+from time import time
 
+cache = {}
+cache_time = {}
 
 def lambda_handler(event, context):
+    global cache
+    global cache_time
+
+    user_name = event['pathParameters']['username']
+    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (user_name in cache and time() < cache_time[user_name] + int(os_environ['CACHE_TIME'])):
+        return cache[user_name]
+
     try:
         dynamodb = boto3.resource('dynamodb')
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
-        user = user_table.get_item(Key={'username': event['pathParameters']['username']})
+        user = user_table.get_item(Key={'username': user_name})
         if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
@@ -38,10 +48,12 @@ def lambda_handler(event, context):
             challenge = t[0]
             user['points'] += challenge['points']
 
-        return {
+        cache[user_name] = {
             "statusCode": 200,
             "body": json_dumps(user, default=int)
         }
+        cache_time[user_name] = time()
+        return cache[user_name]
     except Exception as error:
         return {
             "statusCode": 500,
