@@ -3,7 +3,7 @@ from os import environ as os_environ
 from jwt import decode
 from json import loads as json_loads
 from json import dumps as json_dumps
-
+from urllib import parse
 
 def lambda_handler(event, context):
     try:
@@ -51,7 +51,7 @@ def lambda_handler(event, context):
             }
 
         challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
-        challenge_id = event['pathParameters']['challenge']
+        challenge_id = parse.unquote(event['pathParameters']['challenge'])
 
         response = challenge_table.put_item(
             Item={

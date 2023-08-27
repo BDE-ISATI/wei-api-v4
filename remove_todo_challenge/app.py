@@ -3,7 +3,7 @@ from jwt import decode
 from json import dumps as json_dumps
 from json import loads as json_loads
 from os import environ as os_environ
-
+from urllib import parse
 
 def lambda_handler(event, context):
     try:
@@ -33,7 +33,7 @@ def lambda_handler(event, context):
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
 
         username = token['cognito:username']
-        challenge_id = event['pathParameters']['challenge']
+        challenge_id = parse.unquote(event['pathParameters']['challenge'])
 
         # Get the team and check if user is in pending
         user = user_table.get_item(

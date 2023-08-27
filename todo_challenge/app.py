@@ -2,7 +2,7 @@ import boto3
 from os import environ as os_environ
 from jwt import decode
 from json import dumps as json_dumps
-
+from urllib import parse
 
 def lambda_handler(event, context):
     try:
@@ -24,7 +24,7 @@ def lambda_handler(event, context):
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
 
         username = token['cognito:username']
-        challenge_id = event['pathParameters']['challenge']
+        challenge_id = parse.unquote(event['pathParameters']['challenge'])
 
         user = user_table.get_item(Key={'username': username})
 

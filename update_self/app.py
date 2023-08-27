@@ -4,7 +4,6 @@ from jwt import decode
 from json import loads as json_loads
 from json import dumps as json_dumps
 
-
 def lambda_handler(event, context):
     try:
         token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],

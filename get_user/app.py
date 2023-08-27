@@ -2,6 +2,7 @@ import boto3
 from os import environ as os_environ
 from json import dumps as json_dumps
 from time import time
+from urllib import parse
 
 cache = {}
 cache_time = {}
@@ -11,7 +12,7 @@ def lambda_handler(event, context):
     global cache
     global cache_time
 
-    user_name = event['pathParameters']['username']
+    user_name = parse.unquote(event['pathParameters']['username'])
     if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (
             user_name in cache and time() < cache_time[user_name] + int(os_environ['CACHE_TIME'])):
         return cache[user_name]

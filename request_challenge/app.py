@@ -3,7 +3,7 @@ from os import environ as os_environ
 from time import time
 from jwt import decode
 from json import dumps as json_dumps
-
+from urllib import parse
 
 def lambda_handler(event, context):
     try:
@@ -45,8 +45,9 @@ def lambda_handler(event, context):
         user = user['Item']
 
         # Get challenge
+        challenge_id = parse.unquote(event['pathParameters']['challenge'])
         challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
-        challenge = challenge_table.get_item(Key={'challenge': event['pathParameters']['challenge']})
+        challenge = challenge_table.get_item(Key={'challenge': challenge_id})
 
         if challenge['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {

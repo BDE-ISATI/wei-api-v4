@@ -4,6 +4,7 @@ from json import dumps as json_dumps
 from json import loads as json_loads
 from time import time
 from os import environ as os_environ
+from urllib import parse
 
 
 def lambda_handler(event, context):
@@ -34,7 +35,7 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
 
         user_table = dynamodb.Table(os_environ['USER_TABLE'])
-        username = event['pathParameters']['username']
+        username = parse.unquote(event['pathParameters']['username'])
         # Get the team and check if user is in pending
         user = user_table.get_item(
             Key={
@@ -61,8 +62,9 @@ def lambda_handler(event, context):
             }
 
         user = user['Item']
+        challenge_id = body['challenge']
 
-        if body['challenge'] not in user['challenges_pending']:
+        if challenge_id not in user['challenges_pending']:
             return {
                 'statusCode': 400,
                 'body': json_dumps({"message": 'Player didn\'t request this challenge', "err": "notInPending"}),
@@ -71,13 +73,13 @@ def lambda_handler(event, context):
                 }
             }
 
-        index = user['challenges_pending'].index(body['challenge'])
+        index = user['challenges_pending'].index(challenge_id)
 
         if 'challenges_times' not in user:
             user['challenges_times'] = {}
 
-        if body['challenge'] not in user['challenges_times']:
-            user['challenges_times'][body['challenge']] = int(time())
+        if challenge_id not in user['challenges_times']:
+            user['challenges_times'][challenge_id] = int(time())
 
         response = user_table.update_item(
             Key={
@@ -85,7 +87,7 @@ def lambda_handler(event, context):
             },
             UpdateExpression=f'SET challenges_done = list_append(challenges_done, :challenge), challenges_times = :times REMOVE challenges_pending[{index}]',
             ExpressionAttributeValues={
-                ':challenge': [body['challenge']],
+                ':challenge': [challenge_id],
                 ':times': user['challenges_times']
             },
             ReturnValues="UPDATED_NEW"

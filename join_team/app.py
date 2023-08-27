@@ -2,7 +2,7 @@ import boto3
 from os import environ as os_environ
 from jwt import decode
 from json import dumps as json_dumps
-
+from urllib import parse
 
 def lambda_handler(event, context):
     try:
@@ -21,7 +21,7 @@ def lambda_handler(event, context):
             }
 
         teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
-        team_name = event['pathParameters']['team']
+        team_name = parse.unquote(event['pathParameters']['team'])
 
         # Check if player is already in a team
         response = teams_table.scan(

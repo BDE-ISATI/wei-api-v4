@@ -3,7 +3,7 @@ from json import loads as json_loads
 from json import dumps as json_dumps
 from jwt import decode
 from os import environ as os_environ
-
+from urllib import parse
 
 def lambda_handler(event, context):
     try:
@@ -33,7 +33,7 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
 
         challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
-        challenge_id = event['pathParameters']['challenge']
+        challenge_id = parse.unquote(event['pathParameters']['challenge'])
 
         name = body['name'] if 'name' in body else ''
         description = body['description'] if 'description' in body else ''

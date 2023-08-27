@@ -3,6 +3,7 @@ from os import environ as os_environ
 from jwt import decode
 from json import loads as json_loads
 from json import dumps as json_dumps
+from urllib import parse
 
 
 def lambda_handler(event, context):
@@ -24,7 +25,7 @@ def lambda_handler(event, context):
         dynamodb = boto3.resource('dynamodb')
 
         teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
-        team_id = event['pathParameters']['team']
+        team_id = parse.unquote(event['pathParameters']['team'])
 
         # Get the team and check if user is in pending
         team = teams_table.get_item(
@@ -52,8 +53,9 @@ def lambda_handler(event, context):
             }
 
         team = team['Item']
+        username = body['username']
 
-        if body['username'] not in team['pending']:
+        if username not in team['pending']:
             return {
                 'statusCode': 400,
                 'body': json_dumps({"message": 'Player not in pending', "err": "notInPending"}),
@@ -62,7 +64,7 @@ def lambda_handler(event, context):
                 }
             }
 
-        index = team['pending'].index(body['username'])
+        index = team['pending'].index(username)
 
         response = teams_table.update_item(
             Key={
@@ -70,7 +72,7 @@ def lambda_handler(event, context):
             },
             UpdateExpression=f'SET members = list_append(members, :player) REMOVE pending[{index}]',
             ExpressionAttributeValues={
-                ':player': [body['username']]
+                ':player': [username]
             },
             ReturnValues="UPDATED_NEW"
         )

@@ -13,6 +13,8 @@ Parameters:
   WeiAppPictureStorageBucketName:
     Type: String
     Default: wei-app-picture-storage
+  SESMailAddressArn:
+    Type: String
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -172,8 +174,11 @@ Resources:
       #          Mutable: False
       VerificationMessageTemplate:
         DefaultEmailOption: CONFIRM_WITH_LINK
-      EmailVerificationSubject: "WEI - Vérification de votre adresse email"
-      EmailVerificationMessage: "Lien de vérification : {####}"
+        EmailMessageByLink: "Hello, voici {##ton lien de vérification##} ! Bienvenue au WEI !"
+        EmailSubjectByLink: "WEI - Vérification de votre adresse email"
+      EmailConfiguration:
+        EmailSendingAccount: DEVELOPER
+        SourceArn: !Ref SESMailAddressArn
       LambdaConfig:
         PostConfirmation: !GetAtt PostConfirmSignUpFunction.Arn
 
