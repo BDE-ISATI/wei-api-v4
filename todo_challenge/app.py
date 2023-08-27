@@ -7,12 +7,16 @@ from json import dumps as json_dumps
 def lambda_handler(event, context):
     try:
         token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
-                           options={"verify_signature": False})
+                       options={"verify_signature": False})
 
         if 'cognito:groups' in token and 'Admin' in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json_dumps({"message": 'You must be a player to mark a challenge as todo', "err": "unauthorized"})
+                'body': json_dumps(
+                    {"message": 'You must be a player to mark a challenge as todo', "err": "unauthorized"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         dynamodb = boto3.resource('dynamodb')
@@ -27,13 +31,19 @@ def lambda_handler(event, context):
         if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error getting user', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error getting user', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         if 'Item' not in user:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'User not found', "err": "notFound"})
+                'body': json_dumps({"message": 'User not found', "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         user = user['Item']
@@ -41,7 +51,10 @@ def lambda_handler(event, context):
         if challenge_id in user['challenges_to_do']:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'Challenge already in todo', "err": "alreadyInTodo"})
+                'body': json_dumps({"message": 'Challenge already in todo', "err": "alreadyInTodo"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         # Get challenge
@@ -51,13 +64,19 @@ def lambda_handler(event, context):
         if challenge['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'Error connecting to database', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error connecting to database', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         if 'Item' not in challenge:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'Challenge not found', "err": "notFound"})
+                'body': json_dumps({"message": 'Challenge not found', "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         challenge = challenge['Item']
@@ -74,11 +93,17 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json_dumps({"message": 'Challenge added to todo list'})
+            'body': json_dumps({"message": 'Challenge added to todo list'}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
 
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"})
+            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

@@ -21,7 +21,8 @@ def lambda_handler(event, context):
     global cache
     global cache_time
 
-    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (cache is not None and time() < cache_time + int(os_environ['CACHE_TIME'])):
+    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (
+            cache is not None and time() < cache_time + int(os_environ['CACHE_TIME'])):
         return cache
 
     try:
@@ -34,7 +35,10 @@ def lambda_handler(event, context):
         if challenges['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in challenges:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         challenges = challenges['Items']
@@ -44,7 +48,10 @@ def lambda_handler(event, context):
         if users['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in users:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         users = users['Items']
@@ -55,12 +62,18 @@ def lambda_handler(event, context):
 
         cache = {
             "statusCode": 200,
-            "body": json_dumps(challenges, default=int)
+            "body": json_dumps(challenges, default=int),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
         cache_time = time()
         return cache
     except Exception as error:
         return {
             'statusCode': 500,
-            'body': json_dumps({"message": str(error), "err": "internalError"})
+            'body': json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

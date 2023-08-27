@@ -19,6 +19,8 @@ def lambda_handler(event, context):
 
     if "profile" in image_name:
         img = img.resize((128, 128))
+    elif "banner" in image_name:
+        img = img.resize((768, 256))
 
     buffer = BytesIO()
     img.save(buffer, "PNG")

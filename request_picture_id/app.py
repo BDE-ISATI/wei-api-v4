@@ -21,10 +21,15 @@ def lambda_handler(event, context):
             fullpath = "unprocessedprofile/" + "".join(id)
         elif body['usage'] == "challenge":
             fullpath = "unprocessedchallenge/" + "".join(id)
+        elif body['usage'] == "banner":
+            fullpath = "unprocessedbanner/" + "".join(id)
         else:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": "Invalid usage", "err": "invalidUsage"})
+                'body': json_dumps({"message": "Invalid usage", "err": "invalidUsage"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         response = s3.generate_presigned_url(
@@ -39,10 +44,16 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json_dumps({"url": response, "id": "".join(id)})
+            "body": json_dumps({"url": response, "id": "".join(id)}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
     except Exception as error:
         return {
             'statusCode': 500,
-            'body': json_dumps({"message": str(error), "err": "internalError"})
+            'body': json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

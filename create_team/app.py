@@ -8,12 +8,15 @@ from os import environ as os_environ
 def lambda_handler(event, context):
     try:
         token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
-                           options={"verify_signature": False})
+                       options={"verify_signature": False})
 
         if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"})
+                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         body = json_loads(event['body'])
@@ -40,15 +43,24 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error creating team', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error creating team', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         return {
             'statusCode': 200,
-            'body': json_dumps({"message": 'Team created successfully'})
+            'body': json_dumps({"message": 'Team created successfully'}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"})
+            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

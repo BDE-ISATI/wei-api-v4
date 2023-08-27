@@ -16,12 +16,14 @@ def format_user(user, challenge_id):
 
     return v
 
+
 def lambda_handler(event, context):
     global cache
     global cache_time
 
     challenge_id = event['pathParameters']['challenge']
-    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (challenge_id in cache and time() < cache_time[challenge_id] + int(os_environ['CACHE_TIME'])):
+    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (
+            challenge_id in cache and time() < cache_time[challenge_id] + int(os_environ['CACHE_TIME'])):
         return cache[challenge_id]
 
     try:
@@ -37,13 +39,19 @@ def lambda_handler(event, context):
         if challenge['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving challenge', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving challenge', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         if 'Item' not in challenge:
             return {
                 "statusCode": 404,
-                "body": json_dumps({"message": "Challenge not found", "err": "notFound"})
+                "body": json_dumps({"message": "Challenge not found", "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         challenge = challenge['Item']
@@ -53,7 +61,10 @@ def lambda_handler(event, context):
         if users['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in users:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving users', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
         users = users['Items']
 
@@ -62,12 +73,18 @@ def lambda_handler(event, context):
 
         cache[challenge_id] = {
             "statusCode": 200,
-            "body": json_dumps(challenge, default=int)
+            "body": json_dumps(challenge, default=int),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
         cache_time[challenge_id] = time()
         return cache[challenge_id]
     except Exception as error:
         return {
             'statusCode': 500,
-            'body': json_dumps({"message": str(error), "err": "internalError"})
+            'body': json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

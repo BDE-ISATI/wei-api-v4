@@ -15,7 +15,10 @@ def lambda_handler(event, context):
         if 'show' not in body and 'picture_id' not in body and 'display_name' not in body:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'No body provided', "err": "emptyBody"})
+                'body': json_dumps({"message": 'No body provided', "err": "emptyBody"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         dynamodb = boto3.resource('dynamodb')
@@ -67,20 +70,28 @@ def lambda_handler(event, context):
                 ReturnValues="UPDATED_NEW"
             )
 
-
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error updating user', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error updating user', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         return {
             "statusCode": 200,
-            "body": json_dumps({"message": "User updated"})
+            "body": json_dumps({"message": "User updated"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
 
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"})
+            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

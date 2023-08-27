@@ -6,12 +6,14 @@ from time import time
 cache = {}
 cache_time = {}
 
+
 def lambda_handler(event, context):
     global cache
     global cache_time
 
     user_name = event['pathParameters']['username']
-    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (user_name in cache and time() < cache_time[user_name] + int(os_environ['CACHE_TIME'])):
+    if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (
+            user_name in cache and time() < cache_time[user_name] + int(os_environ['CACHE_TIME'])):
         return cache[user_name]
 
     try:
@@ -21,12 +23,18 @@ def lambda_handler(event, context):
         if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving user', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving user', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
         if 'Item' not in user:
             return {
                 "statusCode": 404,
-                "body": json_dumps({"message": "User not found", "err": "notFound"})
+                "body": json_dumps({"message": "User not found", "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
         user = user['Item']
 
@@ -35,7 +43,10 @@ def lambda_handler(event, context):
         if challenges['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in challenges:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
         challenges = challenges['Items']
 
@@ -57,5 +68,8 @@ def lambda_handler(event, context):
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"})
+            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

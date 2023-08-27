@@ -13,7 +13,10 @@ def lambda_handler(event, context):
         if 'cognito:groups' in token and 'Admin' in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json_dumps({"message": 'You must be a player to request a challenge', "err": "unauthorized"})
+                'body': json_dumps({"message": 'You must be a player to request a challenge', "err": "unauthorized"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         dynamodb = boto3.resource('dynamodb')
@@ -24,13 +27,19 @@ def lambda_handler(event, context):
         if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'Error connecting to database', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error connecting to database', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         if 'Item' not in user:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'User not found', "err": "notFound"})
+                'body': json_dumps({"message": 'User not found', "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         user = user['Item']
@@ -42,13 +51,19 @@ def lambda_handler(event, context):
         if challenge['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'Error connecting to database', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error connecting to database', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         if 'Item' not in challenge:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'Challenge not found', "err": "notFound"})
+                'body': json_dumps({"message": 'Challenge not found', "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         challenge = challenge['Item']
@@ -56,7 +71,10 @@ def lambda_handler(event, context):
         if not challenge:
             return {
                 'statusCode': 404,
-                'body': json_dumps({"message": 'Challenge not found', "err": "notFound"})
+                'body': json_dumps({"message": 'Challenge not found', "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         if user['challenges_done'].count(challenge['challenge']) + user['challenges_pending'].count(
@@ -64,7 +82,10 @@ def lambda_handler(event, context):
             return {
                 'statusCode': 400,
                 'body': json_dumps({"message": 'You have already completed this challenge the maximum number of times',
-                                    "err": "challengeLimit"})
+                                    "err": "challengeLimit"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         t = int(time())
@@ -72,7 +93,10 @@ def lambda_handler(event, context):
         if challenge['start'] > t or challenge['end'] < t:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'Challenge not active', "err": "challengeNotActive"})
+                'body': json_dumps({"message": 'Challenge not active', "err": "challengeNotActive"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         # Add the challenge to the user's pending challenges
@@ -89,16 +113,25 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error requesting challenge', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error requesting challenge', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         return {
             'statusCode': 200,
-            'body': json_dumps({"message": 'Challenge requested'})
+            'body': json_dumps({"message": 'Challenge requested'}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
 
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"})
+            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }

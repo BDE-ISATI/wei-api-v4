@@ -1,5 +1,6 @@
 import json
 
+
 # import requests
 
 
@@ -25,11 +26,13 @@ def lambda_handler(event, context):
         Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
 
-
     return {
         "statusCode": 200,
         "body": json.dumps({
             "message": "You are not supposed to be here!",
             # "location": ip.text.replace("\n", "")
         }),
+        'headers': {
+            'Access-Control-Allow-Origin': '*'
+        }
     }

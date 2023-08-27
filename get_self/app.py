@@ -16,23 +16,31 @@ def lambda_handler(event, context):
         if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving user', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving user', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
 
         if 'Item' not in user:
             return {
                 "statusCode": 404,
-                "body": json_dumps({"message": "User not found", "err": "notFound"})
+                "body": json_dumps({"message": "User not found", "err": "notFound"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
         user = user['Item']
-
 
         challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
         challenges = challenge_table.scan()
         if challenges['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in challenges:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"})
+                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
             }
         challenges = challenges['Items']
 
@@ -48,10 +56,16 @@ def lambda_handler(event, context):
         user['is_admin'] = 'cognito:groups' in token and 'Admin' in token['cognito:groups']
         return {
             "statusCode": 200,
-            "body": json_dumps(user, default=int)
+            "body": json_dumps(user, default=int),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"})
+            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
