@@ -4,6 +4,7 @@ from jwt import decode
 from json import loads as json_loads
 from json import dumps as json_dumps
 from urllib import parse
+import re
 
 def lambda_handler(event, context):
     try:
@@ -52,6 +53,14 @@ def lambda_handler(event, context):
 
         challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
         challenge_id = parse.unquote(event['pathParameters']['challenge'])
+        if not re.match(r'^[A-Za-z_\-0-9.]+$', challenge_id):
+            return {
+                'statusCode': 400,
+                'body': json_dumps({"message": 'Invalid challenge id', "err": "invalidValue", "field": "challenge"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
+            }
 
         response = challenge_table.put_item(
             Item={

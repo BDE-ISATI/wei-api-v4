@@ -181,6 +181,7 @@ Resources:
         SourceArn: !Ref SESMailAddressArn
       LambdaConfig:
         PostConfirmation: !GetAtt PostConfirmSignUpFunction.Arn
+        PreSignUp: !GetAtt PreSignUpFunction.Arn
 
   WeiAppUserPoolAdminGroup:
     Type: AWS::Cognito::UserPoolGroup
@@ -194,6 +195,14 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt PostConfirmSignUpFunction.Arn
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${WeiAppUserPool}
+
+  OnCognitoPreSignUpPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt PreSignUpFunction.Arn
       Principal: cognito-idp.amazonaws.com
       SourceArn: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${WeiAppUserPool}
 
@@ -715,6 +724,13 @@ Resources:
     Properties:
       FunctionName: wei_app_lambda_post_confirm_sign_up
       CodeUri: post_confirm_sign_up/
+      Role: !GetAtt AllowAllRole.Arn
+
+  PreSignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_pre_sign_up
+      CodeUri: pre_sign_up/
       Role: !GetAtt AllowAllRole.Arn
 
   RequestPictureIDFunction:

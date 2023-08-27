@@ -4,6 +4,7 @@ from json import loads as json_loads
 from json import dumps as json_dumps
 from os import environ as os_environ
 from urllib import parse
+import re
 
 def lambda_handler(event, context):
     try:
@@ -26,6 +27,15 @@ def lambda_handler(event, context):
         teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
 
         team_name = parse.unquote(event['pathParameters']['team'])
+        if not re.match(r'^[A-Za-z_\-0-9.]+$', team_name):
+            return {
+                'statusCode': 400,
+                'body': json_dumps({"message": 'Invalid challenge id', "err": "invalidValue", "field": "team_name"}),
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                }
+            }
+
         display_name = body['display_name']
         picture_id = body['picture_id']
 
