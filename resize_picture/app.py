@@ -1,7 +1,7 @@
 import boto3
 from PIL import Image
 from io import BytesIO
-from json import dumps as json_dumps
+import json
 
 client = boto3.client('s3')
 
@@ -33,6 +33,6 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': json_dumps('Image processed')
+        'body': json.dumps('Image processed')
     }
 

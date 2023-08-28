@@ -1,30 +1,29 @@
 import boto3
-from json import loads as json_loads
-from json import dumps as json_dumps
-from jwt import decode
-from os import environ as os_environ
+import json
+import os
+import jwt
 from urllib import parse
 
 def lambda_handler(event, context):
     try:
-        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                        options={"verify_signature": False})
 
         if 'cognito:groups' not in token or 'Admin' not in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json_dumps({"message": 'Unauthorized', "err": "unauthorized"}),
+                'body': json.dumps({"message": 'Unauthorized', "err": "unauthorized"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
             }
 
-        body = json_loads(event['body'])
+        body = json.loads(event['body'])
 
         if 'name' not in body and 'description' not in body and 'picture_id' not in body and 'points' not in body and 'start' not in body and 'end' not in body and 'max_count' not in body:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'Missing parameters', "err": "emptyBody"}),
+                'body': json.dumps({"message": 'Missing parameters', "err": "emptyBody"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -32,7 +31,7 @@ def lambda_handler(event, context):
 
         dynamodb = boto3.resource('dynamodb')
 
-        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
+        challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
         challenge_id = parse.unquote(event['pathParameters']['challenge'])
 
         name = body['name'] if 'name' in body else ''
@@ -42,7 +41,7 @@ def lambda_handler(event, context):
         if points < 0:
             return {
                 'statusCode': 400,
-                'body': json_dumps(
+                'body': json.dumps(
                     {"message": 'points must be greater than 0', "err": "invalidValue", "field": "points"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
@@ -56,7 +55,7 @@ def lambda_handler(event, context):
         if max_count < 0:
             return {
                 'statusCode': 400,
-                'body': json_dumps(
+                'body': json.dumps(
                     {"message": 'max_count must be greater than 0', "err": "invalidValue", "field": "max_count"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
@@ -135,7 +134,7 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error updating challenge', "err": "dynamodbError"}),
+                'body': json.dumps({"message": 'Error updating challenge', "err": "dynamodbError"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -143,7 +142,7 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json_dumps({"message": 'Challenge updated successfully'}),
+            'body': json.dumps({"message": 'Challenge updated successfully'}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
@@ -151,7 +150,7 @@ def lambda_handler(event, context):
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            "body": json.dumps({"message": str(error), "err": "internalError"}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }

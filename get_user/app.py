@@ -1,7 +1,7 @@
 import boto3
-from os import environ as os_environ
-from json import dumps as json_dumps
-from time import time
+import json
+import os
+import time
 from urllib import parse
 
 cache = {}
@@ -14,17 +14,17 @@ def lambda_handler(event, context):
 
     user_name = parse.unquote(event['pathParameters']['username'])
     if not (event['queryStringParameters'] and 'force_refresh' in event['queryStringParameters']) and (
-            user_name in cache and time() < cache_time[user_name] + int(os_environ['CACHE_TIME'])):
+            user_name in cache and time.time() < cache_time[user_name] + int(os.environ['CACHE_TIME'])):
         return cache[user_name]
 
     try:
         dynamodb = boto3.resource('dynamodb')
-        user_table = dynamodb.Table(os_environ['USER_TABLE'])
+        user_table = dynamodb.Table(os.environ['USER_TABLE'])
         user = user_table.get_item(Key={'username': user_name})
         if user['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving user', "err": "dynamodbError"}),
+                'body': json.dumps({"message": 'Error retrieving user', "err": "dynamodbError"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -32,19 +32,19 @@ def lambda_handler(event, context):
         if 'Item' not in user:
             return {
                 "statusCode": 404,
-                "body": json_dumps({"message": "User not found", "err": "notFound"}),
+                "body": json.dumps({"message": "User not found", "err": "notFound"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
             }
         user = user['Item']
 
-        challenge_table = dynamodb.Table(os_environ['CHALLENGES_TABLE'])
+        challenge_table = dynamodb.Table(os.environ['CHALLENGES_TABLE'])
         challenges = challenge_table.scan()
         if challenges['ResponseMetadata']['HTTPStatusCode'] != 200 or 'Items' not in challenges:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"}),
+                'body': json.dumps({"message": 'Error retrieving challenges', "err": "dynamodbError"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -62,14 +62,14 @@ def lambda_handler(event, context):
 
         cache[user_name] = {
             "statusCode": 200,
-            "body": json_dumps(user, default=int)
+            "body": json.dumps(user, default=int)
         }
-        cache_time[user_name] = time()
+        cache_time[user_name] = time.time()
         return cache[user_name]
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            "body": json.dumps({"message": str(error), "err": "internalError"}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }

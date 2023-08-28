@@ -1,27 +1,26 @@
 import boto3
-from os import environ as os_environ
-from jwt import decode
-from json import loads as json_loads
-from json import dumps as json_dumps
+import json
+import os
+import jwt
 
 def lambda_handler(event, context):
     try:
-        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                        options={"verify_signature": False})
 
-        body = json_loads(event['body'])
+        body = json.loads(event['body'])
 
         if 'show' not in body and 'picture_id' not in body and 'display_name' not in body:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'No body provided', "err": "emptyBody"}),
+                'body': json.dumps({"message": 'No body provided', "err": "emptyBody"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
             }
 
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table(os_environ['USER_TABLE'])
+        table = dynamodb.Table(os.environ['USER_TABLE'])
 
         username = token['cognito:username']
 
@@ -72,7 +71,7 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error updating user', "err": "dynamodbError"}),
+                'body': json.dumps({"message": 'Error updating user', "err": "dynamodbError"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -80,7 +79,7 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json_dumps({"message": "User updated"}),
+            "body": json.dumps({"message": "User updated"}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
@@ -89,7 +88,7 @@ def lambda_handler(event, context):
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            "body": json.dumps({"message": str(error), "err": "internalError"}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }

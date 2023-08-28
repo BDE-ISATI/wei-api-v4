@@ -1,12 +1,11 @@
 import boto3
-from os import environ as os_environ
-from jwt import decode
-from json import dumps as json_dumps
-
+import json
+import os
+import jwt
 
 def lambda_handler(event, context):
     try:
-        token = decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
+        token = jwt.decode(event['headers']['Authorization'].replace('Bearer ', ''), algorithms=['RS256'],
                        options={"verify_signature": False})
 
         dynamodb = boto3.resource('dynamodb')
@@ -14,13 +13,13 @@ def lambda_handler(event, context):
         if 'cognito:groups' in token and 'Admin' in token['cognito:groups']:
             return {
                 'statusCode': 401,
-                'body': json_dumps({"message": 'You must be a player to join a team', "err": "unauthorized"}),
+                'body': json.dumps({"message": 'You must be a player to join a team', "err": "unauthorized"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
             }
 
-        teams_table = dynamodb.Table(os_environ['TEAMS_TABLE'])
+        teams_table = dynamodb.Table(os.environ['TEAMS_TABLE'])
 
         response = teams_table.scan(
             FilterExpression='contains(members, :player) OR contains(pending, :player)',
@@ -32,7 +31,7 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error retrieving teams', "err": "dynamodbError"}),
+                'body': json.dumps({"message": 'Error retrieving teams', "err": "dynamodbError"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -41,7 +40,7 @@ def lambda_handler(event, context):
         if len(response['Items']) == 0:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": 'You are not in a team.', "err": "notInTeam"}),
+                'body': json.dumps({"message": 'You are not in a team.', "err": "notInTeam"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -80,7 +79,7 @@ def lambda_handler(event, context):
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json_dumps({"message": 'Error updating team', "err": "dynamodbError"}),
+                'body': json.dumps({"message": 'Error updating team', "err": "dynamodbError"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -88,7 +87,7 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json_dumps({"message": 'Team left successfully'}),
+            'body': json.dumps({"message": 'Team left successfully'}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
@@ -96,7 +95,7 @@ def lambda_handler(event, context):
     except Exception as error:
         return {
             "statusCode": 500,
-            "body": json_dumps({"message": str(error), "err": "internalError"}),
+            "body": json.dumps({"message": str(error), "err": "internalError"}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }

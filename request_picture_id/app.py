@@ -1,9 +1,7 @@
 import random
-
 import boto3
-from os import environ as os_environ
-from json import dumps as json_dumps
-from json import loads as json_loads
+import json
+import os
 
 letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -11,9 +9,9 @@ letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 def lambda_handler(event, context):
     try:
         s3 = boto3.client('s3')
-        bucket = os_environ['PICTURE_BUCKET']
+        bucket = os.environ['PICTURE_BUCKET']
 
-        body = json_loads(event['body'])
+        body = json.loads(event['body'])
 
         id = [letters[random.randint(0, len(letters) - 1)] for i in range(10)]
 
@@ -26,7 +24,7 @@ def lambda_handler(event, context):
         else:
             return {
                 'statusCode': 400,
-                'body': json_dumps({"message": "Invalid usage", "err": "invalidUsage"}),
+                'body': json.dumps({"message": "Invalid usage", "err": "invalidUsage"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -44,7 +42,7 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json_dumps({"url": response, "id": "".join(id)}),
+            "body": json.dumps({"url": response, "id": "".join(id)}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
@@ -52,7 +50,7 @@ def lambda_handler(event, context):
     except Exception as error:
         return {
             'statusCode': 500,
-            'body': json_dumps({"message": str(error), "err": "internalError"}),
+            'body': json.dumps({"message": str(error), "err": "internalError"}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
