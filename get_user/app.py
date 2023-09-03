@@ -62,7 +62,10 @@ def lambda_handler(event, context):
 
         cache[user_name] = {
             "statusCode": 200,
-            "body": json.dumps(user, default=int)
+            "body": json.dumps(user, default=int),
+            'headers': {
+                'Access-Control-Allow-Origin': '*'
+            }
         }
         cache_time[user_name] = time.time()
         return cache[user_name]
