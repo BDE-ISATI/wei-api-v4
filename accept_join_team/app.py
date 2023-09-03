@@ -65,16 +65,27 @@ def lambda_handler(event, context):
 
         index = team['pending'].index(username)
 
-        response = teams_table.update_item(
-            Key={
-                'team': team_id
-            },
-            UpdateExpression=f'SET members = list_append(members, :player) REMOVE pending[{index}]',
-            ExpressionAttributeValues={
-                ':player': [username]
-            },
-            ReturnValues="UPDATED_NEW"
-        )
+        deny = event['queryStringParameters'] and 'deny' in event['queryStringParameters']
+
+        if not deny:
+            response = teams_table.update_item(
+                Key={
+                    'team': team_id
+                },
+                UpdateExpression=f'SET members = list_append(members, :player) REMOVE pending[{index}]',
+                ExpressionAttributeValues={
+                    ':player': [username],
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response = teams_table.update_item(
+                Key={
+                    'team': team_id
+                },
+                UpdateExpression=f'REMOVE pending[{index}]',
+                ReturnValues="UPDATED_NEW"
+            )
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
@@ -87,7 +98,7 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Team joined successfully'}),
+            'body': json.dumps({"message": 'Team joined successfully' if not deny else 'Team join request denied'}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }

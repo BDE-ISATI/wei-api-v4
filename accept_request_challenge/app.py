@@ -74,28 +74,39 @@ def lambda_handler(event, context):
 
         index = user['challenges_pending'].index(challenge_id)
 
+        deny = event['queryStringParameters'] and 'deny' in event['queryStringParameters']
+
         if 'challenges_times' not in user:
             user['challenges_times'] = {}
 
         if challenge_id not in user['challenges_times']:
             user['challenges_times'][challenge_id] = int(time.time())
 
-        response = user_table.update_item(
-            Key={
-                'username': username
-            },
-            UpdateExpression=f'SET challenges_done = list_append(challenges_done, :challenge), challenges_times = :times REMOVE challenges_pending[{index}]',
-            ExpressionAttributeValues={
-                ':challenge': [challenge_id],
-                ':times': user['challenges_times']
-            },
-            ReturnValues="UPDATED_NEW"
-        )
+        if not deny:
+            response = user_table.update_item(
+                Key={
+                    'username': username
+                },
+                UpdateExpression=f'SET challenges_done = list_append(challenges_done, :challenge), challenges_times = :times REMOVE challenges_pending[{index}]',
+                ExpressionAttributeValues={
+                    ':challenge': [challenge_id],
+                    ':times': user['challenges_times']
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+        else:
+            response = user_table.update_item(
+                Key={
+                    'username': username
+                },
+                UpdateExpression=f'REMOVE challenges_pending[{index}]',
+                ReturnValues="UPDATED_NEW"
+            )
 
         if response['ResponseMetadata']['HTTPStatusCode'] != 200:
             return {
                 'statusCode': 500,
-                'body': json.dumps({"message": 'Error accepting challenge', "err": "dynamodbError"}),
+                'body': json.dumps({"message": 'Error accepting/denying challenge', "err": "dynamodbError"}),
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
                 }
@@ -103,7 +114,7 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Challenge accepted'}),
+            'body': json.dumps({"message": 'Challenge accepted' if not deny else 'Challenge denied'}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
