@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         description = body['description']
         picture_id = body['picture_id'] if 'picture_id' in body else ''
         points = body['points']
-        if points < 0:
+        if points < 1:
             return {
                 'statusCode': 400,
                 'body': json.dumps(
