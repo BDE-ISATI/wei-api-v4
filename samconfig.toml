@@ -3,8 +3,8 @@ version = 0.1
 stack_name = "WeiAppDev"
 resolve_s3 = true
 s3_prefix = "WeiAppDev"
-region = "eu-west-1"
+region = "eu-west-3"
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
 image_repositories = []
 confirm_changeset = false
-parameter_overrides = "StageParameter=\"dev\" SESMailAddressArn=\"arn:aws:ses:eu-west-1:704678314289:identity/no-reply.wei@isati.org\""
+parameter_overrides = "StageParameter=\"dev\" WeiAppPictureStorageBucketName=\"wei-app-picture-storage\" SESMailAddressArn=\"arn:aws:ses:eu-west-3:704678314289:identity/no-reply.wei@isati.org\""
