@@ -170,8 +170,6 @@ Resources:
           Required: True
           Mutable: False
       #        - Name: preferred_username
-      #          Required: True
-      #          Mutable: False
       VerificationMessageTemplate:
         DefaultEmailOption: CONFIRM_WITH_LINK
         EmailMessageByLink: "Hello, voici {##ton lien de vérification##} ! Bienvenue au WEI !"
@@ -763,22 +761,12 @@ Resources:
       Role: !GetAtt AllowAllRole.Arn
       MemorySize: 1024
       Timeout: 10
-      Layers:
-        - !Ref PillowLayer
 
   DependenciesLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: DependenciesLayer
       ContentUri: dependencies/
-      CompatibleRuntimes:
-        - python3.12
-
-  PillowLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: PillowLayer
-      ContentUri: pillowlayer/
       CompatibleRuntimes:
         - python3.12
 
