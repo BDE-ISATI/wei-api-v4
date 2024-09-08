@@ -10,7 +10,7 @@ def lambda_handler(event, context):
 
         body = json.loads(event['body'])
 
-        if 'show' not in body and 'picture_id' not in body and 'display_name' not in body:
+        if 'show' not in body and 'picture_id' not in body and 'display_name' not in body and 'anecdote' not in body and "scoreAnecdote" not in body:
             return {
                 'statusCode': 400,
                 'body': json.dumps({"message": 'No body provided', "err": "emptyBody"}),
@@ -27,6 +27,8 @@ def lambda_handler(event, context):
         show = body['show'] if 'show' in body else None
         picture_id = body['picture_id'] if 'picture_id' in body else None
         display_name = body['display_name'] if 'display_name' in body else None
+        anecdote = body['anecdote'] if 'anecdote' in body else None
+        scoreAnecdote = body['scoreAnecdote'] if 'scoreAnecdote' in body else None
 
         names = {}
         update_expression = "set "
@@ -47,6 +49,18 @@ def lambda_handler(event, context):
                 update_expression += ", "
             update_expression += "display_name = :display_name"
             values[":display_name"] = display_name
+
+        if anecdote != None:
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "anecdote = :anecdote"
+            values[":anecdote"] = anecdote
+
+        if scoreAnecdote != None:
+            if len(values) > 0:
+                update_expression += ", "
+            update_expression += "scoreAnecdote = :scoreAnecdote"
+            values[":scoreAnecdote"] = scoreAnecdote
 
         if names != {}:
             response = table.update_item(
