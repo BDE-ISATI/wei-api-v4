@@ -6,7 +6,6 @@ import time
 cache = None
 cache_time = 0
 
-
 def lambda_handler(event, context):
     global cache
     global cache_time
@@ -43,6 +42,7 @@ def lambda_handler(event, context):
         challenges = challenges['Items']
 
         for user in users:
+            del user["mail"]
             user['points'] = 0
             for challenge_id in user['challenges_done']:
                 # Filter to get the correct challenge
