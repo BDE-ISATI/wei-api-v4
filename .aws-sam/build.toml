@@ -217,4 +217,13 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["ResizePictureFunction"]
 
+[function_build_definitions.7f624b49-4c60-4e24-b5eb-c4dd5adb54da]
+codeuri = "E:\\GitRepo\\wei-api-v4\\reset_password"
+runtime = "python3.12"
+architecture = "arm64"
+handler = "app.lambda_handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["ResetPasswordFunction"]
+
 [layer_build_definitions]
