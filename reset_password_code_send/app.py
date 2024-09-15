@@ -14,7 +14,7 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Code envoyé sur la boite mail'}),
+            'body': json.dumps({"message": 'Code sent'}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
