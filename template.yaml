@@ -382,6 +382,20 @@ Resources:
             Method: get
             RestApiId: !Ref WeiAppApi
 
+  ResetPasswordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: wei_app_lambda_reset_password
+      CodeUri: reset_password/
+      Role: !GetAtt AllowAllRole.Arn
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+            RestApiId: !Ref WeiAppApi
+
   GetAllUsersFunction:
     Type: AWS::Serverless::Function
     Properties:
