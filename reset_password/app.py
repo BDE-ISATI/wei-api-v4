@@ -16,7 +16,7 @@ def lambda_handler(event, context):
 
         return {
             'statusCode': 200,
-            'body': json.dumps({"message": 'Challenge removed from todo'}),
+            'body': json.dumps({"message": 'Password Changed'}),
             'headers': {
                 'Access-Control-Allow-Origin': '*'
             }
