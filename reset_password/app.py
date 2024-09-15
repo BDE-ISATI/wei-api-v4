@@ -8,7 +8,7 @@ def lambda_handler(event, context):
         body = json.loads(event['body'])
 
         response = client.confirm_forgot_password(
-            ClientId='6b2qoi7siljqa47u59lmand95q',
+            ClientId=body['ClientId'],
             Username=body["username"],
             ConfirmationCode=body["code"],
             Password=body["password"],
