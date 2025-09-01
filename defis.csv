@@ -1,81 +1,85 @@
-Nom,description,Points,Team,Durée
-Trouve ton chemin,Gagner la course d’orientation,5,oui,Défi permanent
-Olympiades ,Soit premier aux olympiades,20,non,Défi permanent
-Olympiades – 2ème,Soit deuxième aux olympiades,15,non,Défi permanent
-Olympiades – 3ème,Soit troisième aux olympiades,10,non,Défi permanent
+Titre,Description,Points,Equipe,Date
+Olympiades – 1er,Sois premier aux olympiades,20,non,Défi permanent
+Olympiades – 2ème,Sois deuxième aux olympiades,15,non,Défi permanent
+Olympiades – 3ème,Sois troisième aux olympiades,10,non,Défi permanent
 Olympiades – Consolation,"Tu as participé aux olympiades, c’est déjà ça…",5,non,Défi permanent
-Soirée en équipe,Organiser une soirée chez un membre de l'équipe ou chef d’équipe (minimum 6 membres),10,oui,Défi permanent
-On se déguise,Venir à l'ESIR dans le thème de ton équipe (1 heure minimum),10,non,Défi permanent
-Sportons,"Intègre l’une des équipes de sport de l’ESIR! Basket, volley, foot, il y en a pour tous les goûts !",5,non,Défi permanent
-Le roi de la fame,Réussir à parler de l’ISATI à la radio ou incruster le logo de l’ISATI dans un reportage TV (ou autre média) (sauf réseaux sociaux),25,non,Défi permanent
-Pot de shot,Payer un shot à ton chef d’équipe,5,non,Défi permanent
-Pot de pinte,Payer une pinte à ton chef d’équipe,7,non,Défi permanent
-Pot de vin,Payer un verre de vin à ton chef d’équipe,6,non,Défi permanent
-Pot de ru,Payer un RU à ton chef d’équipe,5,non,Défi permanent
-Sacré Xavier,Retrouver Xavier Dupont de Ligonnès,10000,non,Défi Permanent
-Hymne de l’équipe,Créer un hymne d'équipe,3,oui,Défi Permanent
-J’irai dormir chez vous,Dormir chez votre chef d'équipe ou un membre de votre équipe un soir (4 personnes minimum),10,oui,Défi Permanent
-Le FOY,Faire une soirée au FOY de l'INSA,4,non,Défi Permanent
-Le WEI,Prendre ta place pour le WEI,15,non,Défi Permanent
-Dracula,Particper à un don du sang (sauf contre-indication : contacter chef d'équipe),10,non,Défi Permanent
-❤️❤️❤️R1❤️❤️❤️,Matcher Erwan sur Tinder (lui envoyer le message : ISATINDER) (soyez créatif pour arriver à le match),5,non,Défi Permanent
-Consanguin,Choper quelqu'un de l'ESIR ,10,non,Défi Permanent
-Je suis posé dans le club,Participer à l'événement d'un club,8,non,Défi Permanent
-Tchop-test,Faire reconnaître une musique à un de tes chef d’équipes en l’interprétant au klaxon,3,non,semaine 1
-C’est l’heure du dessert,Demande à un membre de ton équipe de t’étaler une assiette de chantilly sur le visage),3,non,semaine 1
-Shifumi,"Faire des shifumis avec des inconnus (2 points / inconnu, max 3 inconnus)",2,non,semaine 1
-Selfie Beauf,Prends le selfie le plus beauf de l’histoire,3,non,semaine 1
-Freestyle d'Amour pour le Leader,Fais un rap romantique pour ton chef d’équipe,5,non,semaine 1
-Afterwork 1,Participer à l'afterwork,10,non,semaine 1
-Fier de l'ESIR,Représenter l'ESIR dans les lieux emblématiques de Rennes (5 max),3,non,semaine 1
-DJ de la star,Faire semblant d'avoir mal branché ces écouteurs et écouter la musique à fond dans un transport en commun (20 sec),7,non,semaine 1
-Just dance,Créer une chorée en équipe et se produire en public (minimum 6 membres),5,oui,"semaine 1,2"
-Winter is coming,Viens habillé en tenue de ski/de grand froid en cours,10,non,"semaine 1,2"
-Je pèse dans le game,Prend un selfie avec une célébrité. L’originalité et le niveau de la célébrité sont pris en compte!,15,non,"semaine 1,2"
-X (Twitter),Ajouter @bde_isati sur X (Twitter),1,non,semaine 1
-Snapchat,Ajouter @isatibde sur snapchat,1,non,semaine 1
-Instagram,Ajouter @isatibde sur instagram,1,non,semaine 1
-Linkedin,Ajouter @isati sur linkedin,1,non,semaine 1
-Discorder,Rejoindre le groupe ESIR sur Discord,1,non,semaine 1
-Facebook,Ajouter Isati Bde Esir sur Facebook,1,non,semaine 1
-IDESIR,Rejoindre IDESIR,1,non ,"semaine 1,2"
-Isati – 3 ans,Adhère pour 3 ans à l’ISATI,20,non ,"semaine 1,2"
-Isati – 2 ans,Adhère pour 2 ans à l’ISATI,10,non ,"semaine 1,2"
-Isati – 1 an,Adhère pour 1 ans à l’ISATI,5,non ,"semaine 1,2"
-Fan du BDE,Faire signer l'organigramme du BDE par tout.es les membres du BDE,8,non,"semaine 1,2"
-On dessine,Créez un dessin collaboratif qui représente votre équipe,3,oui,semaine 2
-On se culture,"Lire un livre douteux dans un lieu public ET PASSANT (ex : bus, métro)",5,non,semaine 2
-Waf waf,Se faire promener en laisse par quelqu’’un de son équipe dans un lieu public (ne pas hésiter à aboyer),10,non,semaine 2
-Végétarien,Ne pas manger de viande pendant 5 repas dans même semaine (sans compter le ptit dej),5,non,semaine 2
-Afterwork 2,Participer à l'afterwork,10,non,semaine 2
-Iroquoise et Frange,Avoir une nouvelle coupe de cheveux pour pécho toute l'année : Iroquoise ou Frange ou Carré,50,non,semaine 2
-Je vois la vie en rouge,Faire une teinture rouge PERMANENTE,35,non,semaine 2
-Je vois la vie (à moitié) en rouge,Faire une teinture rouge TEMPORAIRE,5,non,semaine 2
+Santé,Participer à un atelier de prévention,5,non,Défi permanent
+Afterwork 1,Participer à l’afterwork,10,non,semaine 1
+Afterwork 2,Participer à l’afterwork,10,non,semaine 2
+Afterwork 3,Participer à l’afterwork,10,non,semaine 3
+Afterwork 4,Participer à l’afterwork,10,non,semaine 4
+Soirée d’équipe,Organiser une soirée chez un membre de l’équipe ou du chef d’équipe (minimum 6 membres),10,oui,Défi permanent
+On se déguise,Venir à l’ESIR dans le thème de ton équipe (1h minimum),10,non,Défi permanent
+Sportons,"Intègre une équipe de sport de l’ESIR (basket, volley, foot, hand…)",5,non,Défi permanent
+Le roi de la fame,Parler de l’ISATI à la radio ou incruster son logo dans un reportage TV (hors réseaux sociaux),25,non,Défi permanent
+Paye un coup,Offrir un verre à ton chef d’équipe,5,non,Défi permanent
+Sans alcool la fête est plus folle,Prendre un soft à l’afterwork et le boire,5,non,Défi permanent
+Sacré Xavier,Retrouver Xavier Dupont de Ligonnès,10000,non,Défi permanent
+Hymne de l’équipe,Créer un hymne d’équipe,3,oui,Défi permanent
+J’irai dormir chez vous,Dormir chez ton chef d’équipe ou un membre de ton équipe (4 pers. min),10,oui,Défi permanent
+Le FOY,Faire une soirée au FOY de l’INSA,4,non,Défi permanent
+Le WEI,Prendre ta place pour le WEI,15,non,Défi permanent
+Dracula,Participer à un don du sang (sauf contre-indication),10,non,Défi permanent
+Consanguin,Choper quelqu’un de l’ESIR,10,non,Défi permanent
+Je suis posé dans le club,Participer à l’événement d’un club,8,non,Défi permanent
+C’est l’heure du dessert,Demander à un membre de ton équipe de t’étaler une assiette de chantilly sur le visage,3,non,semaine 1
+Shifumi,"Faire des shifumis avec des inconnus (2 points/inconnu, max 3)",2,non,semaine 1
+Selfie Beauf,Prendre le selfie le plus beauf de l’histoire,3,non,semaine 1
+Freestyle d’Amour,Faire un rap romantique pour ton chef d’équipe,5,non,semaine 1
+Fier de l’ESIR,Représenter l’ESIR dans des lieux emblématiques de Rennes (5 max),3,non,semaine 1
+DJ de la star,Faire semblant d’avoir mal branché ses écouteurs et écouter la musique à fond (20 sec),7,non,semaine 1
+Journée tout sauf,Venir à l’ESIR avec tout sauf un sac,10,non,"semaine 1,2"
+Just Dance,Créer une chorégraphie en équipe et la produire en public (6 pers. min),5,oui,"semaine 1,2"
+Winter is coming,Venir en cours habillé en tenue de ski/grand froid,10,non,"semaine 1,2"
+Le grand bleu,"Venir en cours habillé en tenue de plongée (masque, tuba, palmes)",10,non,"semaine 1,2"
+Je pèse dans le game,Prendre un selfie avec une célébrité (originalité et notoriété comptent),15,non,"semaine 1,2"
+X (Twitter),Ajouter @bde_isati sur X,1,non,"semaine 1,2"
+Snapchat,Ajouter @isatibde sur Snapchat,1,non,semaine 1
+Instagram,Ajouter @isatibde sur Instagram,1,non,semaine 1
+LinkedIn,Ajouter @isati sur LinkedIn,1,non,semaine 1
+Discorder,Rejoindre le groupe ESIR sur Discord,1,non,"semaine 1,2"
+Facebook,Ajouter Isati BDE ESIR sur Facebook,1,non,semaine 1
+IDESIR,Rejoindre IDESIR,1,non,"semaine 1,2"
+Isati – 3 ans,Adhérer 3 ans à l’ISATI,20,non,"semaine 1,2"
+Isati – 2 ans,Adhérer 2 ans à l’ISATI,10,non,"semaine 1,2"
+Isati – 1 an,Adhérer 1 an à l’ISATI,5,non,"semaine 1,2"
+Fan du BDE,Faire signer l’organigramme du BDE par tous ses membres,8,non,"semaine 1,2"
+Venir déguisé en...,Venir déguisé en un membre du BDE (points bonus si créativité),10,non,semaine 2
+La coupe du chef,Laisser les respos WEI te coiffer comme ils veulent,70,non,semaine 2
+Nouvelle coupe,"Avoir une nouvelle coupe de cheveux (iroquoise, frange, carré)",50,non,semaine 2
+Teinture rouge permanente,Faire une teinture rouge permanente,35,non,semaine 2
+Teinture rouge temporaire,Faire une teinture rouge non permanente,5,non,semaine 2
 Passer une bonne soirée,"N’acheter qu’un concombre, du beurre et des préservatifs (et passer seul à la caisse)",8,non,semaine 2
-Lundi isatien,Participer à un Lundi Isatien,7,non,semaine 2
-Les produits laitiers sont nos amis pour la vie,"Manger un pack de 8 yaourts Activia (ou équivalent) en moins de 2 minutes (sans sucre, vidéo à fournir)",15,non,"semaine 2,3"
-Semi-barathon,Boire un verre dans la même soirée dans 5 bars différents,5,non,"semaine 2,3"
-Un dîner presque parfait,Préparez un menu en rapport avec votre thème d'équipe et invitez vos chefs d’équipe (4 personnes minimum),7,non,"semaine 2,3"
+Flambisati,Avaler un flambisati d’un coup,5,non,semaine 2
+Produits laitiers,Manger un pack de 8 yaourts en moins de 2 minutes (vidéo à fournir),15,non,"semaine 2,3"
+Semi-barathon,Boire un verre dans 5 bars différents en une soirée,5,non,"semaine 2,3"
+Un dîner presque parfait,Préparer un menu et inviter les chefs d’équipe (4 pers. min),7,non,"semaine 2,3"
 Roi de la débrouille,Décapsuler une bière de 5 façons différentes,7,non,"semaine 2,3"
-AlanFood challenge,Manger 2 tacos en un repas,7,non,"semaine 2,3"
-Sauvons la planète,Ramasser 5 déchets dans Beaulieu (preuve à l’appui),1,non,semaine 3
-"8,6 X2","Boire deux 8,6 en moins de 10 min (ne pas faire tout seul)",10,non,semaine 3
-Afterwork 3,Participer à l'afterwork,10,non,semaine 3
-Poudre de perlimpinpin,Prendre un rail de poivre ,5,non ,semaine 3
-Trouver l'intrus,S’incruster dans une classe qui n’est pas la tienne pendant un cours,5,non,semaine 3
-Lèche-botte,Offrir un café ou un chocolat chaud à un prof/membre de l'administration,7,non,semaine 3
-On se refait une beauté,Epilation par ton chef d'équipe (au choix : bras/jambe/torse),15,non,semaine 3
-ça clash,Battre Flavien (respo foot) à clash royale (1 seul essai) (id : #80J22JC00),5,non,semaine 3
-Coin Coin,Faire le canard dans la marre de l’istic pendant 1 min,15,non,"semaine 3,4"
-Tu tires ou tu pointes ?,Faire une pétanque/pallet/molky devant l’école ,4,non,"semaine 3,4"
-Marathon d'équipe,"Courir une distance totale de 42,195km en une journée avec les membres de ton éuqipe",15,oui,"semaine 3,4"
-Un peu de ménage,Venez en équipe nettoyer l'appartement de votre chef d'équipe (3 personnes minimum),10,oui,"semaine 3,4"
-Heureuse rencontre,Ecrire son numéro sur un papier et le donner à un.e serveur.se  en lui faisant un clin d'oeil,10,non,"semaine 3,4"
-Pourquoi se brosser les dents ?,Shot de dentifrice (peut-être légérement coupé à l'eau),5,non,semaine 4
-Friskies,Manger des croquettes pour chat/chien (doit-être avalé),10,non,semaine 4
-Anonymous,Pirater un réseau social d’un membre d’une équipe adverse afin d’y poster un message faisant l’apologie de son équipe.,7,non,semaine 4
-Afterwork 4,Participer à l'afterwork,10,non,semaine 4
-Dieu de l'ESIR,Faire une photo type dieu du stade ,10,non,semaine 4
-La pyramide,Faire une pyramide d'équipe (minimum 5 personnes),7,oui,semaine 4
-Sacré descente,Boire une pinte en moins de 10 secondes,5,non,semaine 4
-Où est Batmat,Trouver qui est DJ Batmat (un des dj du WEI),2,non,semaine 4
+"8,6 x2 ou Coca x2","Boire 2 canettes de 8,6 en 10 min (ou 2 Coca en 2 min)",10,non,"semaine 2,3"
+Duo inséparable,Passer la journée attaché à quelqu’un (bonus si couple diversifié),20,non,"semaine 2,3"
+Sauvons la planète,Ramasser 10 déchets dans Beaulieu,5,non,"semaine 2,3"
+Poudre de perlimpinpin,Prendre un rail de poivre,5,non,semaine 3
+Trouver l’intrus,S’incruster dans une classe qui n’est pas la tienne,5,non,semaine 3
+Lèche-botte,Offrir un café ou chocolat chaud à un prof/administratif,7,non,semaine 3
+On se refait une beauté,Se faire épiler par son chef d’équipe (bras/jambe/torse),15,non,semaine 3
+La pyramide,Faire une pyramide d’équipe (5 pers. min),7,oui,semaine 3
+Sacré descente,Boire une pinte en moins de 10 secondes,5,non,semaine 3
+Coin Coin,Faire le canard dans la mare de l’ISTIC pendant 1 min,15,non,semaine 3
+Tu tires ou tu pointes ?,Faire une pétanque/palet/molky devant l’école,4,non,semaine 3
+À vos crayons,Faire une caricature de ton chef d’équipe,5,non,semaine 3
+Heureuse rencontre,Écrire ton numéro sur un papier et le donner à un serveur/se en faisant un clin d’œil,10,non,Défi permanent
+Marathon d’équipe,"Courir 42,195 km en une journée avec ton équipe",10,oui,Défi permanent
+Fière de la patrie,Créer un drapeau d’équipe et le brandir aux événements,5,oui,Défi permanent
+TikTokeur,Créer un TikTok viral en équipe (1000+ vues),5,oui,Défi permanent
+Anonymous,Faire l’apologie de son équipe sur le compte d’un membre d’une autre équipe,5,non,Défi permanent
+Ame charitable,Offrir une denrée alimentaire à un sans-abri,5,non,Défi permanent
+Star des trottoirs,Se mettre au bord de la route et obtenir 10 klaxons,5,non,Défi permanent
+Touriste,Faire l’aller-retour complet des lignes A et B du métro,7,non,Défi permanent
+Merci pour l’accueil,Offrir un café ou une collation à chaque respo WEI,5,non,Défi permanent
+L’intru,Trouver le respo rien et faire un selfie avec,5,non,Défi permanent
+Le talent à l'état pure,Participer au concours d’affiche ISATI,5,non,Défi permanent
+❤❤❤Elisa❤❤❤,Matcher Elisa sur Tinder (lui envoyer le message : ISATINDER),5,non,Défi permanent
+Lundi isatien,Participer à un lundi isatien (qui est un mardi),7,non,semaine 2
+Gagner contre le boss de LoL,Battre Sam à LoL,15,non,Défi permanent
+Tournois d’ego,Affronter en bras de fer les gros bras de l’ESIR,10,non,Défi permanent
+Un peu de ménage,Nettoyer l’appartement du chef d’équipe (3 pers. min),10,oui,semaine 3
